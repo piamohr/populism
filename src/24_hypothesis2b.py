@@ -1,45 +1,45 @@
 # ============================================================
-# H2b: MODERATION DER RHETORISCHEN ANNÄHERUNG
-# DURCH UNTERSTÜTZUNGSVERLUSTE
+# H2b: MODERATION OF RHETORICAL CONVERGENCE
+# BY LOSSES OF SUPPORT
 #
 # H2b:
-# Je mehr Unterstützung eine Mainstream-Partei verloren hat,
-# desto stärker ist der rhetorische Annäherungseffekt.
+# The more support a mainstream party has lost,
+# the stronger the rhetorical convergence effect.
 #
-# Die Hypothese wird mit zwei komplementären
-# Operationalisierungen geprüft:
+# The hypothesis is tested with two complementary
+# operationalizations:
 #
-# MODELL A: Rhetorische Distanz zur AfD
-#   AV: populism_distance_to_afd
-#   Erwartung:
-#   Interaktion afd_support_c × electoral_loss_c < 0
+# MODEL A: Rhetorical distance to the AfD
+#   DV: populism_distance_to_afd
+#   Expectation:
+#   Interaction afd_support_c × electoral_loss_c < 0
 #
-# MODELL B: Absoluter Populismus
-#   AV: mean_populism_score
-#   Erwartung:
-#   Interaktion afd_support_c × electoral_loss_c > 0
+# MODEL B: Absolute populism
+#   DV: mean_populism_score
+#   Expectation:
+#   Interaction afd_support_c × electoral_loss_c > 0
 #
-# WICHTIG:
-# party_support_change ist codiert als:
-# aktueller Umfragewert minus vorheriger Umfragewert.
+# IMPORTANT:
+# party_support_change is coded as:
+# current polling value minus previous polling value.
 #
-# Deshalb:
+# Therefore:
 # electoral_loss = -party_support_change
 #
-# Positive Werte von electoral_loss bedeuten Verluste.
-# Negative Werte bedeuten Gewinne.
+# Positive values of electoral_loss mean losses.
+# Negative values mean gains.
 #
-# Für beide Modelle:
-#   - Partei-Fixed-Effects
-#   - Wahlperioden-Fixed-Effects
-#   - Clusterrobuste Standardfehler auf Parteiebene
-#   - Small-Sample-Korrektur
-#   - Wild-Cluster-Bootstrap WCR11 und WCR31
-#   - Simple-Slope-Analysen
-#   - vorhergesagte Werte und Interaktionsgrafiken
+# For both models:
+#   - Party fixed effects
+#   - Electoral-term fixed effects
+#   - Cluster-robust standard errors at the party level
+#   - Small-sample correction
+#   - Wild cluster bootstrap WCR11 and WCR31
+#   - Simple slope analyses
+#   - Predicted values and interaction plots
 #
-# Alle Ergebniswerte werden mit drei Nachkommastellen
-# ausgegeben und gespeichert.
+# All result values are printed and saved
+# with three decimal places.
 # ============================================================
 
 from pathlib import Path
@@ -53,7 +53,7 @@ from wildboottest.wildboottest import wildboottest
 
 
 # ============================================================
-# 1. EINSTELLUNGEN
+# 1. SETTINGS
 # ============================================================
 
 INPUT_FILE = Path(
@@ -82,15 +82,15 @@ INTERACTION_NAME = "afd_x_loss"
 
 MODEL_SPECS = {
     "distance": {
-        "label": "Rhetorische Distanz zur AfD",
+        "label": "Rhetorical distance to the AfD",
         "outcome": "populism_distance_to_afd",
         "expected_direction": "negative",
         "expected_sign": -1,
         "output_prefix": "h2b_distance",
         "prediction_column": "predicted_distance",
-        "y_axis_label": "Vorhergesagte rhetorische Distanz zur AfD",
+        "y_axis_label": "Predicted rhetorical distance to the AfD",
         "figure_title": (
-            "H2b: Unterstützungsverluste und rhetorische Distanz zur AfD"
+            "H2b: Support losses and rhetorical distance to the AfD"
         ),
         "descriptive_variables": [
             "populism_distance_to_afd",
@@ -101,15 +101,15 @@ MODEL_SPECS = {
         ],
     },
     "absolute": {
-        "label": "Absoluter Populismus",
+        "label": "Absolute populism",
         "outcome": "mean_populism_score",
         "expected_direction": "positive",
         "expected_sign": 1,
         "output_prefix": "h2b_absolute_populism",
         "prediction_column": "predicted_populism",
-        "y_axis_label": "Vorhergesagter absoluter Populismus",
+        "y_axis_label": "Predicted absolute populism",
         "figure_title": (
-            "H2b: Unterstützungsverluste und absoluten Populismus"
+            "H2b: Support losses and absolute populism"
         ),
         "descriptive_variables": [
             "mean_populism_score",
@@ -123,12 +123,12 @@ MODEL_SPECS = {
 
 
 # ============================================================
-# 2. HILFSFUNKTIONEN
+# 2. HELPER FUNCTIONS
 # ============================================================
 
 def mainstream_mask(series: pd.Series) -> pd.Series:
     """
-    Erzeugt einen robusten Filter für die Mainstream-Variable.
+    Creates a robust filter for the mainstream variable.
     """
     if pd.api.types.is_bool_dtype(series):
         return series.fillna(False)
@@ -152,8 +152,8 @@ def save_bootstrap_result(
     output_file: Path,
 ) -> None:
     """
-    Speichert ein wildboottest-Ergebnis mit drei
-    Nachkommastellen als CSV.
+    Saves a wildboottest result as a CSV file with three
+    decimal places.
     """
     if isinstance(result, pd.DataFrame):
         result.reset_index().to_csv(
@@ -175,8 +175,8 @@ def save_bootstrap_error(
     output_file: Path,
 ) -> None:
     """
-    Speichert Fehlertyp und Fehlermeldung eines
-    fehlgeschlagenen Bootstrap-Laufs.
+    Saves the error type and error message of a
+    failed bootstrap run.
     """
     pd.DataFrame(
         {
@@ -194,8 +194,8 @@ def save_result_dataframe(
     output_file: Path,
 ) -> None:
     """
-    Speichert numerische Ergebniswerte mit drei
-    Nachkommastellen.
+    Saves numeric result values with three
+    decimal places.
     """
     dataframe.to_csv(
         output_file,
@@ -209,7 +209,7 @@ def direction_matches(
     expected_sign: int,
 ) -> bool:
     """
-    Prüft, ob ein Koeffizient in die erwartete Richtung weist.
+    Checks whether a coefficient points in the expected direction.
     """
     if expected_sign == -1:
         return coefficient < 0
@@ -218,7 +218,7 @@ def direction_matches(
         return coefficient > 0
 
     raise ValueError(
-        "expected_sign muss entweder -1 oder 1 sein."
+        "expected_sign must be either -1 or 1."
     )
 
 
@@ -229,8 +229,8 @@ def interpret_interaction(
     model_label: str,
 ) -> str:
     """
-    Erstellt eine automatische Interpretation des
-    Interaktionseffekts.
+    Creates an automatic interpretation of the
+    interaction effect.
     """
     matches = direction_matches(
         coefficient=coefficient,
@@ -241,26 +241,26 @@ def interpret_interaction(
 
     if matches and significant:
         return (
-            f"{model_label}: Der Interaktionseffekt weist in die "
-            "erwartete Richtung und ist statistisch signifikant."
+            f"{model_label}: The interaction effect points in the "
+            "expected direction and is statistically significant."
         )
 
     if matches and not significant:
         return (
-            f"{model_label}: Der Interaktionseffekt weist in die "
-            "erwartete Richtung, ist aber nicht statistisch signifikant."
+            f"{model_label}: The interaction effect points in the "
+            "expected direction but is not statistically significant."
         )
 
     if not matches and significant:
         return (
-            f"{model_label}: Der Interaktionseffekt ist statistisch "
-            "signifikant, weist aber in die der Hypothese "
-            "entgegengesetzte Richtung."
+            f"{model_label}: The interaction effect is statistically "
+            "significant but points in the direction opposite to the "
+            "hypothesis."
         )
 
     return (
-        f"{model_label}: Der Interaktionseffekt weist nicht in die "
-        "erwartete Richtung und ist nicht statistisch signifikant."
+        f"{model_label}: The interaction effect does not point in the "
+        "expected direction and is not statistically significant."
     )
 
 
@@ -269,8 +269,8 @@ def prepare_analysis_sample(
     outcome: str,
 ) -> pd.DataFrame:
     """
-    Erstellt die vollständige Mainstream-Analysestichprobe
-    für eine abhängige Variable.
+    Creates the complete mainstream analysis sample
+    for a dependent variable.
     """
     required_columns = [
         outcome,
@@ -289,7 +289,7 @@ def prepare_analysis_sample(
 
     if missing_columns:
         raise ValueError(
-            "Folgende Variablen fehlen:\n"
+            "The following variables are missing:\n"
             + "\n".join(
                 f"- {column}"
                 for column in missing_columns
@@ -330,7 +330,7 @@ def prepare_analysis_sample(
 
     if analysis_df.empty:
         raise ValueError(
-            f"Die Analysestichprobe für '{outcome}' ist leer."
+            f"The analysis sample for '{outcome}' is empty."
         )
 
     analysis_df[PARTY] = (
@@ -351,8 +351,8 @@ def prepare_analysis_sample(
 
     if (analysis_df["cluster_id"] < 0).any():
         raise ValueError(
-            "Bei der Erstellung der Cluster-ID sind "
-            "ungültige Werte entstanden."
+            "Invalid values were created while generating "
+            "the cluster ID."
         )
 
     return analysis_df
@@ -362,8 +362,8 @@ def create_loss_variables(
     analysis_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, float, float, float]:
     """
-    Bildet die Verlustvariable, zentriert die Prädiktoren
-    und erzeugt den Interaktionsterm.
+    Creates the loss variable, centers the predictors
+    and generates the interaction term.
     """
     centered_df = analysis_df.copy()
 
@@ -412,15 +412,15 @@ def extract_parameter_result(
     parameter_name: str,
 ) -> dict:
     """
-    Extrahiert Koeffizient, clusterrobusten Standardfehler,
-    t-Wert, p-Wert und 95%-Konfidenzintervall.
+    Extracts the coefficient, cluster-robust standard error,
+    t-value, p-value and 95% confidence interval.
     """
     parameter_names = ols_result.model.exog_names
 
     if parameter_name not in parameter_names:
         raise ValueError(
-            f"Parameter '{parameter_name}' wurde im Modell "
-            "nicht gefunden."
+            f"Parameter '{parameter_name}' was not found "
+            "in the model."
         )
 
     parameter_index = parameter_names.index(
@@ -461,8 +461,8 @@ def run_wild_cluster_bootstrap(
     heading: str,
 ):
     """
-    Führt einen Wild-Cluster-Bootstrap für den
-    Interaktionseffekt aus.
+    Runs a wild cluster bootstrap for the
+    interaction effect.
     """
     print("\n" + "=" * 72)
     print(heading)
@@ -496,14 +496,14 @@ def run_wild_cluster_bootstrap(
 
     except Exception as error:
         print(
-            f"Der Wild-Cluster-Bootstrap {bootstrap_type} "
-            "konnte nicht berechnet werden."
+            f"The wild cluster bootstrap {bootstrap_type} "
+            "could not be computed."
         )
         print(
-            f"Fehlertyp: {type(error).__name__}"
+            f"Error type: {type(error).__name__}"
         )
         print(
-            f"Fehlermeldung: {error}"
+            f"Error message: {error}"
         )
 
         save_bootstrap_error(
@@ -521,18 +521,18 @@ def calculate_simple_slopes(
     electoral_loss_sd: float,
 ) -> pd.DataFrame:
     """
-    Berechnet den Effekt der AfD-Unterstützung bei niedrigem,
-    mittlerem und hohem Unterstützungsverlust.
+    Calculates the effect of AfD support at low,
+    medium and high support losses.
     """
     loss_levels = {
-        "Niedriger Verlust / eher Gewinn": (
+        "Low loss / rather gain": (
             electoral_loss_mean
             - electoral_loss_sd
         ),
-        "Mittlerer Verlust": (
+        "Medium loss": (
             electoral_loss_mean
         ),
-        "Hoher Verlust": (
+        "High loss": (
             electoral_loss_mean
             + electoral_loss_sd
         ),
@@ -635,18 +635,18 @@ def create_predictions(
     prediction_column: str,
 ) -> pd.DataFrame:
     """
-    Erzeugt vorhergesagte Werte für niedrige, mittlere und
-    hohe Unterstützungsverluste.
+    Creates predicted values for low, medium and
+    high support losses.
     """
     loss_levels = {
-        "Niedriger Verlust / eher Gewinn": (
+        "Low loss / rather gain": (
             electoral_loss_mean
             - electoral_loss_sd
         ),
-        "Mittlerer Verlust": (
+        "Medium loss": (
             electoral_loss_mean
         ),
-        "Hoher Verlust": (
+        "High loss": (
             electoral_loss_mean
             + electoral_loss_sd
         ),
@@ -733,7 +733,7 @@ def create_interaction_plot(
     output_file: Path,
 ) -> None:
     """
-    Speichert eine Interaktionsgrafik.
+    Saves an interaction plot.
     """
     plt.figure(
         figsize=(9, 6)
@@ -750,7 +750,7 @@ def create_interaction_plot(
         )
 
     plt.xlabel(
-        "AfD-Unterstützung in Prozentpunkten"
+        "AfD support in percentage points"
     )
 
     plt.ylabel(
@@ -778,8 +778,8 @@ def run_model_specification(
     model_spec: dict,
 ) -> dict:
     """
-    Führt das vollständige H2b-Modell für eine
-    Operationalisierung aus.
+    Runs the complete H2b model for one
+    operationalization.
     """
     label = model_spec["label"]
     outcome = model_spec["outcome"]
@@ -852,77 +852,77 @@ def run_model_specification(
 
     print("\n\n" + "#" * 72)
     print(
-        f"STARTE H2b-MODELL: "
+        f"STARTING H2b MODEL: "
         f"{label.upper()}"
     )
     print("#" * 72)
 
     print(
-        f"Analyseeinheiten: "
+        f"Analysis units: "
         f"{len(analysis_df)}"
     )
     print(
-        f"Parteien/Cluster: "
+        f"Parties/clusters: "
         f"{analysis_df[PARTY].nunique()}"
     )
     print(
-        f"Wahlperioden: "
+        f"Electoral terms: "
         f"{analysis_df[PERIOD].nunique()}"
     )
 
-    print("\nOriginale Veränderungsvariable:")
+    print("\nOriginal change variable:")
     print(
         analysis_df[SUPPORT_CHANGE]
         .describe()
         .round(DECIMALS)
     )
 
-    print("\nNeu gebildete Verlustvariable:")
+    print("\nNewly created loss variable:")
     print(
         analysis_df[ELECTORAL_LOSS]
         .describe()
         .round(DECIMALS)
     )
 
-    print("\nInterpretation der Verlustvariable:")
-    print("- positiver Wert = Unterstützungsverlust")
-    print("- null           = keine Veränderung")
-    print("- negativer Wert = Unterstützungsgewinn")
+    print("\nInterpretation of the loss variable:")
+    print("- positive value = loss of support")
+    print("- zero           = no change")
+    print("- negative value = gain in support")
 
-    print("\nAnteile:")
+    print("\nShares:")
     print(
         pd.Series(
             {
-                "Verlust": (
+                "Loss": (
                     analysis_df[ELECTORAL_LOSS] > 0
                 ).mean(),
-                "Unverändert": (
+                "Unchanged": (
                     analysis_df[ELECTORAL_LOSS] == 0
                 ).mean(),
-                "Gewinn": (
+                "Gain": (
                     analysis_df[ELECTORAL_LOSS] < 0
                 ).mean(),
             }
         ).round(DECIMALS)
     )
 
-    print("\nMittelwerte für die Zentrierung:")
+    print("\nMeans used for centering:")
     print(
-        f"AfD-Unterstützung: "
+        f"AfD support: "
         f"{afd_support_mean:.3f}"
     )
     print(
-        f"Unterstützungsverlust: "
+        f"Support loss: "
         f"{electoral_loss_mean:.3f}"
     )
     print(
-        f"SD Unterstützungsverlust: "
+        f"SD of support loss: "
         f"{electoral_loss_sd:.3f}"
     )
 
     descriptive_variables = model_spec["descriptive_variables"]
 
-    print("\nDeskriptive Werte:")
+    print("\nDescriptive statistics:")
     print(
         analysis_df[
             descriptive_variables
@@ -932,7 +932,7 @@ def run_model_specification(
     )
 
     # --------------------------------------------------------
-    # Interaktionsmodell mit Partei- und Wahlperioden-FE
+    # Interaction model with party and electoral-term FE
     # --------------------------------------------------------
 
     formula = f"""
@@ -955,8 +955,8 @@ def run_model_specification(
         ols_result.nobs
     ):
         raise ValueError(
-            "Die Zahl der Clusterkennungen stimmt nicht mit "
-            "der Zahl der Modellbeobachtungen überein."
+            "The number of cluster identifiers does not match "
+            "the number of model observations."
         )
 
     cluster_result = (
@@ -997,41 +997,41 @@ def run_model_specification(
         model_label=label,
     )
 
-    print("\nModellspezifikation:")
+    print("\nModel specification:")
     print(
         formula.strip()
     )
 
     print("\n" + "=" * 72)
     print(
-        f"H2b: Interaktionsmodell – {label}"
+        f"H2b: Interaction model – {label}"
     )
     print("=" * 72)
 
     print(
-        "Interaktionskoeffizient: "
+        "Interaction coefficient: "
         f"{interaction_stats['coefficient']:.3f}"
     )
     print(
-        "Clusterrobuster SE:      "
+        "Cluster-robust SE:       "
         f"{interaction_stats['cluster_robust_se']:.3f}"
     )
     print(
-        "t-Wert:                  "
+        "t-value:                 "
         f"{interaction_stats['t_value']:.3f}"
     )
     print(
-        "p-Wert:                  "
+        "p-value:                 "
         f"{interaction_stats['p_value']:.3f}"
     )
     print(
-        "95%-KI:                  "
+        "95% CI:                  "
         f"[{interaction_stats['ci_95_low']:.3f}, "
         f"{interaction_stats['ci_95_high']:.3f}]"
     )
     print(
-        "H2b unterstützt:         "
-        f"{'Ja' if supported else 'Nein'}"
+        "H2b supported:           "
+        f"{'Yes' if supported else 'No'}"
     )
 
     print("\nInterpretation:")
@@ -1040,7 +1040,7 @@ def run_model_specification(
     )
 
     # --------------------------------------------------------
-    # Wild-Cluster-Bootstrap
+    # Wild cluster bootstrap
     # --------------------------------------------------------
 
     run_wild_cluster_bootstrap(
@@ -1060,7 +1060,7 @@ def run_model_specification(
     )
 
     # --------------------------------------------------------
-    # Simple Slopes
+    # Simple slopes
     # --------------------------------------------------------
 
     simple_slopes = calculate_simple_slopes(
@@ -1072,7 +1072,7 @@ def run_model_specification(
 
     print("\n" + "=" * 72)
     print(
-        f"Simple Slopes – {label}"
+        f"Simple slopes – {label}"
     )
     print("=" * 72)
 
@@ -1083,7 +1083,7 @@ def run_model_specification(
     )
 
     # --------------------------------------------------------
-    # Vorhergesagte Werte und Grafik
+    # Predicted values and plot
     # --------------------------------------------------------
 
     predictions = create_predictions(
@@ -1108,7 +1108,7 @@ def run_model_specification(
     )
 
     # --------------------------------------------------------
-    # Ergebnisse speichern
+    # Save results
     # --------------------------------------------------------
 
     model_output = pd.DataFrame(
@@ -1181,7 +1181,7 @@ def run_model_specification(
         float_format="%.3f",
     )
 
-    print("\nGespeicherte Dateien:")
+    print("\nSaved files:")
     print(f"- {output_model}")
     print(f"- {output_bootstrap_11}")
     print(f"- {output_bootstrap_31}")
@@ -1197,12 +1197,12 @@ def run_model_specification(
 
 
 # ============================================================
-# 3. DATEN EINLESEN
+# 3. LOAD DATA
 # ============================================================
 
 if not INPUT_FILE.exists():
     raise FileNotFoundError(
-        f"Datei nicht gefunden:\n"
+        f"File not found:\n"
         f"{INPUT_FILE.resolve()}"
     )
 
@@ -1211,15 +1211,15 @@ df = pd.read_csv(
 )
 
 print("=" * 72)
-print("H2b: Moderation durch Unterstützungsverluste")
+print("H2b: Moderation by support losses")
 print("=" * 72)
-print(f"Datei: {INPUT_FILE}")
-print(f"Zeilen im Gesamtdatensatz: {len(df)}")
-print(f"Spalten im Gesamtdatensatz: {len(df.columns)}")
+print(f"File: {INPUT_FILE}")
+print(f"Rows in the full dataset: {len(df)}")
+print(f"Columns in the full dataset: {len(df.columns)}")
 
 
 # ============================================================
-# 4. BEIDE H2b-OPERATIONALISIERUNGEN SCHÄTZEN
+# 4. ESTIMATE BOTH H2b OPERATIONALIZATIONS
 # ============================================================
 
 all_main_results = []
@@ -1259,7 +1259,7 @@ for model_key, model_spec in MODEL_SPECS.items():
 
 
 # ============================================================
-# 5. GEMEINSAME ERGEBNISTABELLEN
+# 5. COMBINED RESULT TABLES
 # ============================================================
 
 combined_main_results = pd.concat(
@@ -1294,14 +1294,14 @@ save_result_dataframe(
 
 
 # ============================================================
-# 6. ABSCHLUSSAUSGABE
+# 6. FINAL OUTPUT
 # ============================================================
 
 print("\n\n" + "=" * 72)
-print("H2b: ALLE ANALYSEN ABGESCHLOSSEN")
+print("H2b: ALL ANALYSES COMPLETED")
 print("=" * 72)
 
-print("\nInteraktionsmodelle im Vergleich:")
+print("\nInteraction models compared:")
 print(
     combined_main_results[
         [
@@ -1323,22 +1323,22 @@ print(
     .to_string(index=False)
 )
 
-print("\nGemeinsame Ergebnisdateien:")
+print("\nCombined result files:")
 print(
-    f"- Interaktionsmodelle: "
+    f"- Interaction models: "
     f"{OUTPUT_COMBINED_MODELS}"
 )
 print(
-    f"- Simple Slopes:       "
+    f"- Simple slopes:      "
     f"{OUTPUT_COMBINED_SIMPLE_SLOPES}"
 )
 
 print(
-    "\nHinweis zur Interpretation:\n"
-    "- Beim Distanzmodell unterstützt ein negativer "
-    "Interaktionskoeffizient H2b.\n"
-    "- Beim Modell des absoluten Populismus unterstützt ein "
-    "positiver Interaktionskoeffizient H2b.\n"
-    "- Positive Werte der Variable electoral_loss bedeuten "
-    "Unterstützungsverluste; negative Werte bedeuten Gewinne."
+    "\nNote on interpretation:\n"
+    "- In the distance model, a negative interaction "
+    "coefficient supports H2b.\n"
+    "- In the absolute populism model, a positive "
+    "interaction coefficient supports H2b.\n"
+    "- Positive values of the variable electoral_loss mean "
+    "support losses; negative values mean gains."
 )

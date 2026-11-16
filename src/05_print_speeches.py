@@ -112,7 +112,7 @@ def main() -> None:
             file.write(row["rede_text"].iloc[0])
             file.write("\n\n\n")
 
-    print(f"Datei gespeichert: {OUT_PATH}")
+    print(f"Saved: {OUT_PATH}")
 
 
 if __name__ == "__main__":

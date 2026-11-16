@@ -82,16 +82,16 @@ def main() -> None:
     df.to_csv(OUT_PATH, index=False)
 
     print("=" * 80)
-    print("CPP-BT bereinigt")
+    print("CPP-BT cleaned")
     print("=" * 80)
-    print("Form:", df.shape)
-    print("\nParteien:")
+    print("Shape:", df.shape)
+    print("\nParties:")
     print(df["party_clean"].value_counts())
-    print("\nWahlperioden:")
+    print("\nElectoral terms:")
     print(df["wahlperiode"].value_counts().sort_index())
-    print("\nZeitraum:")
-    print(df["sitzung_datum"].min(), "bis", df["sitzung_datum"].max())
-    print("\nGespeichert unter:", OUT_PATH)
+    print("\nTime period:")
+    print(df["sitzung_datum"].min(), "to", df["sitzung_datum"].max())
+    print("\nSaved to:", OUT_PATH)
 
 
 if __name__ == "__main__":

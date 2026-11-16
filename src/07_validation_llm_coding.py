@@ -7,7 +7,7 @@ from openai import OpenAI
 from tqdm import tqdm
 
 # =====================================================
-# EINSTELLUNGEN
+# SETTINGS
 # =====================================================
 
 INPUT_FILE = "data/processed/validation/validation_sample.csv"
@@ -183,7 +183,7 @@ SCHEMA = {
 }
 
 # =====================================================
-# LLM FUNKTION
+# LLM FUNCTIONS
 # =====================================================
 
 def code_speech(text):
@@ -242,7 +242,7 @@ def main():
 
     df = pd.read_csv(INPUT_FILE)
 
-    print(f"{len(df)} Reden geladen")
+    print(f"{len(df)} speeches loaded")
     print(df[[ID_COLUMN]].head())
 
     results = []
@@ -293,7 +293,7 @@ def main():
         index=False
     )
 
-    print("Fertig.")
+    print("Done.")
 
 
 if __name__ == "__main__":

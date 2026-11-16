@@ -4,7 +4,7 @@ import pandas as pd
 
 
 # ============================================================
-# 1. EINSTELLUNGEN
+# 1. SETTINGS
 # ============================================================
 
 INPUT_SPEECH = Path(
@@ -52,7 +52,7 @@ MAINSTREAM_PARTIES = [
 
 
 # ============================================================
-# 2. VARIABLENDEFINITIONEN
+# 2. VARIABLE DEFINITIONS
 # ============================================================
 
 POPULISM_SCORE = "populism_score"
@@ -81,38 +81,38 @@ ALL_SCORE_VARIABLES = (
 )
 
 VARIABLE_LABELS = {
-    "populism_score": "Populismus-Gesamtscore",
-    "P1_people": "Volkszentrierung",
-    "P2_anti_elite": "Anti-Elitismus",
-    "P3_outgroup": "Ausschluss von Outgroups",
+    "populism_score": "Populism overall score",
+    "P1_people": "People-centrism",
+    "P2_anti_elite": "Anti-elitism",
+    "P3_outgroup": "Exclusion of out-groups",
 
-    "gal_tan_score": "GAL-TAN-Gesamtscore",
-    "G1_environment": "Umwelt",
+    "gal_tan_score": "GAL-TAN overall score",
+    "G1_environment": "Environment",
     "G2_migration": "Migration",
-    "G3_society": "Gesellschaftspolitik",
-    "G4_civil_rights": "Bürgerrechte",
-    "G5_cosmopolitanism": "Kosmopolitismus",
+    "G3_society": "Social policy",
+    "G4_civil_rights": "Civil rights",
+    "G5_cosmopolitanism": "Cosmopolitanism",
 }
 
 VARIABLE_GROUPS = {
-    "populism_score": "Populismus-Gesamtscore",
-    "P1_people": "Populismus-Subdimension",
-    "P2_anti_elite": "Populismus-Subdimension",
-    "P3_outgroup": "Populismus-Subdimension",
+    "populism_score": "Populism overall score",
+    "P1_people": "Populism subdimension",
+    "P2_anti_elite": "Populism subdimension",
+    "P3_outgroup": "Populism subdimension",
 
-    "gal_tan_score": "GAL-TAN-Gesamtscore",
-    "G1_environment": "GAL-TAN-Subdimension",
-    "G2_migration": "GAL-TAN-Subdimension",
-    "G3_society": "GAL-TAN-Subdimension",
-    "G4_civil_rights": "GAL-TAN-Subdimension",
-    "G5_cosmopolitanism": "GAL-TAN-Subdimension",
+    "gal_tan_score": "GAL-TAN overall score",
+    "G1_environment": "GAL-TAN subdimension",
+    "G2_migration": "GAL-TAN subdimension",
+    "G3_society": "GAL-TAN subdimension",
+    "G4_civil_rights": "GAL-TAN subdimension",
+    "G5_cosmopolitanism": "GAL-TAN subdimension",
 }
 
 VARIABLE_CONSTRUCTS = {
-    "populism_score": "Populismus",
-    "P1_people": "Populismus",
-    "P2_anti_elite": "Populismus",
-    "P3_outgroup": "Populismus",
+    "populism_score": "Populism",
+    "P1_people": "Populism",
+    "P2_anti_elite": "Populism",
+    "P3_outgroup": "Populism",
 
     "gal_tan_score": "GAL-TAN",
     "G1_environment": "GAL-TAN",
@@ -124,7 +124,7 @@ VARIABLE_CONSTRUCTS = {
 
 
 # ============================================================
-# 3. GAL-TAN-THEMENINDIKATOREN AUF REDEEBENE
+# 3. GAL-TAN TOPIC INDICATORS AT SPEECH LEVEL
 # ============================================================
 
 GAL_TAN_TOPIC_INDICATORS = {
@@ -137,11 +137,11 @@ GAL_TAN_TOPIC_INDICATORS = {
 
 
 # ============================================================
-# 4. VARIABLEN AUF INTERVALL-EBENE
+# 4. VARIABLES AT INTERVAL LEVEL
 # ============================================================
 
 INTERVAL_OVERALL_VARIABLES = {
-    "Populismus": {
+    "Populism": {
         "mainstream_absolute": "mean_populism_score",
         "afd_absolute": "afd_mean_populism_score",
         "distance_to_afd": "populism_distance_to_afd",
@@ -199,16 +199,16 @@ INTERVAL_SUBDIMENSION_VARIABLES = {
 
 
 # ============================================================
-# 5. HILFSFUNKTIONEN
+# 5. HELPER FUNCTIONS
 # ============================================================
 
 def check_file_exists(filepath):
     """
-    Prüft, ob eine Eingabedatei existiert.
+    Check whether an input file exists.
     """
     if not filepath.exists():
         raise FileNotFoundError(
-            f"Datei nicht gefunden:\n{filepath.resolve()}"
+            f"File not found:\n{filepath.resolve()}"
         )
 
 
@@ -218,7 +218,7 @@ def check_required_columns(
     dataset_name,
 ):
     """
-    Prüft, ob alle benötigten Variablen vorhanden sind.
+    Check whether all required variables are present.
     """
     missing_columns = [
         column
@@ -233,14 +233,14 @@ def check_required_columns(
         )
 
         raise KeyError(
-            f"Im Datensatz '{dataset_name}' fehlen "
-            f"folgende Variablen:\n{missing_text}"
+            f"The following variables are missing in "
+            f"dataset '{dataset_name}':\n{missing_text}"
         )
 
 
 def standardize_party(series):
     """
-    Standardisiert die Parteibezeichnungen.
+    Standardize party names.
     """
     return (
         series
@@ -252,7 +252,7 @@ def standardize_party(series):
 
 def descriptive_stats_for_series(series):
     """
-    Berechnet deskriptive Statistiken für eine Variable.
+    Compute descriptive statistics for one variable.
     """
     numeric = pd.to_numeric(
         series,
@@ -278,10 +278,10 @@ def descriptive_stats_for_series(series):
 def descriptive_stats_overall(
     data,
     variable,
-    group_label="gesamt",
+    group_label="overall",
 ):
     """
-    Berechnet deskriptive Statistiken insgesamt.
+    Compute overall descriptive statistics.
     """
     stats = descriptive_stats_for_series(
         data[variable]
@@ -325,7 +325,7 @@ def descriptive_stats_by_party(
     variable,
 ):
     """
-    Berechnet deskriptive Statistiken pro Partei.
+    Compute descriptive statistics per party.
     """
     output = (
         data
@@ -372,8 +372,8 @@ def create_party_rankings(
     variables,
 ):
     """
-    Erstellt Mittelwerte, Standardabweichungen und Rangfolgen
-    der Parteien für mehrere Variablen.
+    Create means, standard deviations and rankings of the parties
+    for several variables.
     """
     tables = []
 
@@ -463,7 +463,7 @@ def create_mainstream_speech_stats(
     variables,
 ):
     """
-    Berechnet redegewichtete Werte der Mainstream-Parteien.
+    Compute speech-weighted values of the mainstream parties.
     """
     mainstream_data = data.loc[
         data["party_clean"].isin(
@@ -479,8 +479,8 @@ def create_mainstream_speech_stats(
         ).to_dict()
 
         rows.append({
-            "group": "Mainstream-Parteien",
-            "weighting": "redegewichtet",
+            "group": "Mainstream parties",
+            "weighting": "speech-weighted",
             "construct": VARIABLE_CONSTRUCTS[variable],
             "variable": variable,
             "variable_label": VARIABLE_LABELS[variable],
@@ -495,9 +495,9 @@ def create_party_balanced_mainstream_stats(
     variables,
 ):
     """
-    Berechnet parteigewichtete Mainstream-Werte.
+    Compute party-weighted mainstream values.
 
-    Jede Mainstream-Partei geht mit demselben Gewicht ein.
+    Each mainstream party enters with the same weight.
     """
     mainstream_data = data.loc[
         data["party_clean"].isin(
@@ -519,8 +519,8 @@ def create_party_balanced_mainstream_stats(
         )
 
         rows.append({
-            "group": "Mainstream-Parteien",
-            "weighting": "parteigewichtet",
+            "group": "Mainstream parties",
+            "weighting": "party-weighted",
             "construct": VARIABLE_CONSTRUCTS[variable],
             "variable": variable,
             "variable_label": VARIABLE_LABELS[variable],
@@ -541,8 +541,8 @@ def create_interval_overall_stats(
     analysis_level,
 ):
     """
-    Berechnet absolute Mainstream-Werte, absolute AfD-Werte
-    und Distanzen zur AfD.
+    Compute absolute mainstream values, absolute AfD values
+    and distances to the AfD.
     """
     rows = []
 
@@ -569,8 +569,8 @@ def create_interval_subdimension_stats(
     analysis_level,
 ):
     """
-    Berechnet parallele Statistiken für alle Populismus-
-    und GAL-TAN-Subdimensionen.
+    Compute parallel statistics for all populism and
+    GAL-TAN subdimensions.
     """
     rows = []
 
@@ -602,12 +602,11 @@ def create_interval_overall_by_party(
     variable_mapping,
 ):
     """
-    Berechnet absolute Werte und Distanzen auf
-    Partei-Intervall-Ebene getrennt nach Partei.
+    Compute absolute values and distances at party-interval level,
+    separately by party.
 
-    Die AfD-Werte werden nicht nach Mainstream-Partei
-    ausgewiesen, da sie innerhalb eines Intervalls
-    für alle Mainstream-Parteien identisch sind.
+    AfD values are not reported per mainstream party, because
+    within an interval they are identical for all mainstream parties.
     """
     rows = []
 
@@ -684,8 +683,8 @@ def create_interval_subdimensions_by_party(
     variable_mapping,
 ):
     """
-    Berechnet absolute Subdimensionswerte und Distanzen
-    getrennt nach Mainstream-Partei.
+    Compute absolute subdimension values and distances
+    separately by mainstream party.
     """
     rows = []
 
@@ -773,13 +772,13 @@ def create_interval_subdimensions_by_party(
 
 def create_support_change_stats(data):
     """
-    Berechnet die Unterstützungsveränderung.
+    Compute the change in support.
 
     party_support_change =
-    aktueller Umfragewert minus vorheriger Umfragewert.
+    current poll value minus previous poll value.
 
-    Negative Werte entsprechen Verlusten.
-    Positive Werte entsprechen Gewinnen.
+    Negative values are losses.
+    Positive values are gains.
     """
     values = pd.to_numeric(
         data["party_support_change"],
@@ -811,11 +810,11 @@ def create_support_change_stats(data):
             valid["party_support_change"] > tolerance,
         ],
         [
-            "Verlust",
-            "Unverändert",
-            "Gewinn",
+            "Loss",
+            "Unchanged",
+            "Gain",
         ],
-        default="Unklar",
+        default="Unclear",
     )
 
     categories = (
@@ -838,10 +837,10 @@ def create_support_change_stats(data):
     )
 
     category_order = [
-        "Verlust",
-        "Unverändert",
-        "Gewinn",
-        "Unklar",
+        "Loss",
+        "Unchanged",
+        "Gain",
+        "Unclear",
     ]
 
     categories["change_category"] = pd.Categorical(
@@ -864,7 +863,7 @@ def safe_round(
     decimals=DECIMALS,
 ):
     """
-    Rundet alle numerischen Spalten.
+    Round all numeric columns.
     """
     output = dataframe.copy()
 
@@ -885,11 +884,11 @@ def write_csv(
     filename,
 ):
     """
-    Speichert einen DataFrame als CSV-Datei.
+    Save a DataFrame as a CSV file.
 
-    - Semikolon als Spaltentrennzeichen
-    - Punkt als Dezimaltrennzeichen
-    - Fließkommazahlen immer mit drei Nachkommastellen
+    - semicolon as column separator
+    - period as decimal separator
+    - floats always with three decimal places
     """
     if dataframe is None or dataframe.empty:
         return
@@ -907,7 +906,7 @@ def write_csv(
 
 
 # ============================================================
-# 6. DATEIEN PRÜFEN UND LADEN
+# 6. CHECK AND LOAD FILES
 # ============================================================
 
 check_file_exists(INPUT_SPEECH)
@@ -930,29 +929,29 @@ mainstream_interval_df = pd.read_csv(
 )
 
 print("=" * 78)
-print("DESKRIPTIVE STATISTIKEN")
+print("DESCRIPTIVE STATISTICS")
 print("=" * 78)
 
 print(
-    f"\nRedeebene: {len(speech_df)} Zeilen, "
-    f"{len(speech_df.columns)} Spalten"
+    f"\nSpeech level: {len(speech_df)} rows, "
+    f"{len(speech_df.columns)} columns"
 )
 
 print(
-    f"Partei-Intervall-Ebene: "
-    f"{len(party_interval_df)} Zeilen, "
-    f"{len(party_interval_df.columns)} Spalten"
+    f"Party-interval level: "
+    f"{len(party_interval_df)} rows, "
+    f"{len(party_interval_df.columns)} columns"
 )
 
 print(
-    f"Aggregierte Mainstream-Ebene: "
-    f"{len(mainstream_interval_df)} Zeilen, "
-    f"{len(mainstream_interval_df.columns)} Spalten"
+    f"Aggregated mainstream level: "
+    f"{len(mainstream_interval_df)} rows, "
+    f"{len(mainstream_interval_df.columns)} columns"
 )
 
 
 # ============================================================
-# 7. ERFORDERLICHE VARIABLEN PRÜFEN
+# 7. CHECK REQUIRED VARIABLES
 # ============================================================
 
 required_speech_columns = [
@@ -1054,7 +1053,7 @@ check_required_columns(
 
 
 # ============================================================
-# 8. REDE-DATENSATZ BEREINIGEN
+# 8. CLEAN SPEECH DATASET
 # ============================================================
 
 speech_df["party_clean"] = standardize_party(
@@ -1094,7 +1093,7 @@ speech_df["party_clean"] = pd.Categorical(
 
 
 # ============================================================
-# 9. PARTEI-INTERVALL-DATENSATZ BEREINIGEN
+# 9. CLEAN PARTY-INTERVAL DATASET
 # ============================================================
 
 party_interval_df["party_clean"] = standardize_party(
@@ -1157,7 +1156,7 @@ for column in party_interval_numeric_columns:
 
 
 # ============================================================
-# 10. AGGREGIERTEN MAINSTREAM-DATENSATZ BEREINIGEN
+# 10. CLEAN AGGREGATED MAINSTREAM DATASET
 # ============================================================
 
 mainstream_interval_numeric_columns = [
@@ -1189,8 +1188,8 @@ for column in mainstream_interval_numeric_columns:
 
 
 # ============================================================
-# 11. REDEEBENE:
-#     DESKRIPTIVE STATISTIKEN INSGESAMT
+# 11. SPEECH LEVEL:
+#     OVERALL DESCRIPTIVE STATISTICS
 # ============================================================
 
 overall_tables = []
@@ -1222,8 +1221,8 @@ speech_scores_overall = (
 
 
 # ============================================================
-# 12. REDEEBENE:
-#     DESKRIPTIVE STATISTIKEN NACH PARTEI
+# 12. SPEECH LEVEL:
+#     DESCRIPTIVE STATISTICS BY PARTY
 # ============================================================
 
 party_tables = []
@@ -1256,9 +1255,9 @@ speech_scores_by_party = (
 
 
 # ============================================================
-# 13. POPULISMUS-PRÄVALENZ AUF REDEEBENE
+# 13. POPULISM PREVALENCE AT SPEECH LEVEL
 #
-# Anteil der gültigen Codierungen mit Score 1 oder 2.
+# Share of valid codings with score 1 or 2.
 # ============================================================
 
 populism_prevalence_rows = []
@@ -1276,7 +1275,7 @@ for variable in POPULISM_SUBDIMENSIONS:
     )
 
     populism_prevalence_rows.append({
-        "construct": "Populismus",
+        "construct": "Populism",
         "variable": variable,
         "variable_label": VARIABLE_LABELS[variable],
         "n_speeches_total": int(len(speech_df)),
@@ -1309,9 +1308,9 @@ populism_prevalence = (
 
 
 # ============================================================
-# 14. GAL-TAN-THEMENHÄUFIGKEIT AUF REDEEBENE
+# 14. GAL-TAN TOPIC FREQUENCY AT SPEECH LEVEL
 #
-# Verwendet die vorhandenen has_*-Variablen.
+# Uses the existing has_* variables.
 # ============================================================
 
 gal_tan_topic_rows = []
@@ -1369,7 +1368,7 @@ gal_tan_topic_prevalence = (
 
 
 # ============================================================
-# 15. PARTEIRANGLISTEN AUF REDEEBENE
+# 15. PARTY RANKINGS AT SPEECH LEVEL
 # ============================================================
 
 speech_party_rankings = create_party_rankings(
@@ -1380,7 +1379,7 @@ speech_party_rankings = create_party_rankings(
 populism_party_rankings = (
     speech_party_rankings.loc[
         speech_party_rankings["construct"]
-        == "Populismus"
+        == "Populism"
     ]
     .copy()
     .reset_index(drop=True)
@@ -1397,7 +1396,7 @@ gal_tan_party_rankings = (
 
 
 # ============================================================
-# 16. MAINSTREAM-WERTE AUF REDEEBENE
+# 16. MAINSTREAM VALUES AT SPEECH LEVEL
 # ============================================================
 
 mainstream_speech_stats = (
@@ -1416,7 +1415,7 @@ mainstream_party_balanced_stats = (
 
 
 # ============================================================
-# 17. WORTANZAHL UND ANZAHL DER REDEN
+# 17. WORD COUNT AND NUMBER OF SPEECHES
 # ============================================================
 
 word_count_overall = (
@@ -1436,7 +1435,7 @@ word_count_overall.insert(
 word_count_overall.insert(
     1,
     "variable_label",
-    "Wortanzahl",
+    "Word count",
 )
 
 speech_counts_by_party = (
@@ -1558,8 +1557,8 @@ speech_counts_by_party_wahlperiode = (
 
 
 # ============================================================
-# 18. PARTEI-INTERVALL-EBENE:
-#     GESAMTSCORES UND DISTANZEN
+# 18. PARTY-INTERVAL LEVEL:
+#     OVERALL SCORES AND DISTANCES
 # ============================================================
 
 party_interval_overall_stats = (
@@ -1579,8 +1578,8 @@ party_interval_overall_by_party = (
 
 
 # ============================================================
-# 19. PARTEI-INTERVALL-EBENE:
-#     SUBDIMENSIONEN UND DISTANZEN
+# 19. PARTY-INTERVAL LEVEL:
+#     SUBDIMENSIONS AND DISTANCES
 # ============================================================
 
 party_interval_subdimension_stats = (
@@ -1604,7 +1603,7 @@ party_interval_subdimensions_by_party = (
 
 
 # ============================================================
-# 20. UNTERSTÜTZUNGSVERÄNDERUNG
+# 20. CHANGE IN SUPPORT
 # ============================================================
 
 (
@@ -1616,8 +1615,8 @@ party_interval_subdimensions_by_party = (
 
 
 # ============================================================
-# 21. AGGREGIERTE MAINSTREAM-EBENE:
-#     GESAMTSCORES UND DISTANZEN
+# 21. AGGREGATED MAINSTREAM LEVEL:
+#     OVERALL SCORES AND DISTANCES
 # ============================================================
 
 mainstream_interval_overall_stats = (
@@ -1632,8 +1631,8 @@ mainstream_interval_overall_stats = (
 
 
 # ============================================================
-# 22. AGGREGIERTE MAINSTREAM-EBENE:
-#     SUBDIMENSIONEN UND DISTANZEN
+# 22. AGGREGATED MAINSTREAM LEVEL:
+#     SUBDIMENSIONS AND DISTANCES
 # ============================================================
 
 mainstream_interval_subdimension_stats = (
@@ -1650,13 +1649,13 @@ mainstream_interval_subdimension_stats = (
 
 
 # ============================================================
-# 23. KONSTRUKTSPEZIFISCHE TABELLEN
+# 23. CONSTRUCT-SPECIFIC TABLES
 # ============================================================
 
 party_interval_populism = (
     party_interval_overall_stats.loc[
         party_interval_overall_stats["construct"]
-        == "Populismus"
+        == "Populism"
     ]
     .copy()
     .reset_index(drop=True)
@@ -1674,7 +1673,7 @@ party_interval_gal_tan = (
 party_interval_pop_subdimensions = (
     party_interval_subdimension_stats.loc[
         party_interval_subdimension_stats["construct"]
-        == "Populismus"
+        == "Populism"
     ]
     .copy()
     .reset_index(drop=True)
@@ -1692,7 +1691,7 @@ party_interval_gal_subdimensions = (
 mainstream_interval_populism = (
     mainstream_interval_overall_stats.loc[
         mainstream_interval_overall_stats["construct"]
-        == "Populismus"
+        == "Populism"
     ]
     .copy()
     .reset_index(drop=True)
@@ -1712,7 +1711,7 @@ mainstream_interval_pop_subdimensions = (
         mainstream_interval_subdimension_stats[
             "construct"
         ]
-        == "Populismus"
+        == "Populism"
     ]
     .copy()
     .reset_index(drop=True)
@@ -1731,11 +1730,11 @@ mainstream_interval_gal_subdimensions = (
 
 
 # ============================================================
-# 24. CSV-DATEIEN SPEICHERN
+# 24. SAVE CSV FILES
 # ============================================================
 
 # ------------------------------------------------------------
-# Redeebene: allgemeine Statistiken
+# Speech level: general statistics
 # ------------------------------------------------------------
 
 write_csv(
@@ -1750,7 +1749,7 @@ write_csv(
 
 
 # ------------------------------------------------------------
-# Redeebene: Populismus-Prävalenz und GAL-TAN-Themen
+# Speech level: populism prevalence and GAL-TAN topics
 # ------------------------------------------------------------
 
 write_csv(
@@ -1765,7 +1764,7 @@ write_csv(
 
 
 # ------------------------------------------------------------
-# Redeebene: Parteiranglisten
+# Speech level: party rankings
 # ------------------------------------------------------------
 
 write_csv(
@@ -1785,7 +1784,7 @@ write_csv(
 
 
 # ------------------------------------------------------------
-# Redeebene: Mainstream-Parteien
+# Speech level: mainstream parties
 # ------------------------------------------------------------
 
 write_csv(
@@ -1800,7 +1799,7 @@ write_csv(
 
 
 # ------------------------------------------------------------
-# Wortanzahl und Anzahl der Reden
+# Word count and number of speeches
 # ------------------------------------------------------------
 
 write_csv(
@@ -1825,7 +1824,7 @@ write_csv(
 
 
 # ------------------------------------------------------------
-# Partei-Intervall-Ebene: Gesamtscores
+# Party-interval level: overall scores
 # ------------------------------------------------------------
 
 write_csv(
@@ -1850,7 +1849,7 @@ write_csv(
 
 
 # ------------------------------------------------------------
-# Partei-Intervall-Ebene: Subdimensionen
+# Party-interval level: subdimensions
 # ------------------------------------------------------------
 
 write_csv(
@@ -1875,7 +1874,7 @@ write_csv(
 
 
 # ------------------------------------------------------------
-# Unterstützungsveränderung
+# Change in support
 # ------------------------------------------------------------
 
 write_csv(
@@ -1890,7 +1889,7 @@ write_csv(
 
 
 # ------------------------------------------------------------
-# Aggregierte Mainstream-Ebene: Gesamtscores
+# Aggregated mainstream level: overall scores
 # ------------------------------------------------------------
 
 write_csv(
@@ -1910,7 +1909,7 @@ write_csv(
 
 
 # ------------------------------------------------------------
-# Aggregierte Mainstream-Ebene: Subdimensionen
+# Aggregated mainstream level: subdimensions
 # ------------------------------------------------------------
 
 write_csv(
@@ -1930,20 +1929,20 @@ write_csv(
 
 
 # ============================================================
-# 25. KONTROLLAUSGABEN
+# 25. CHECK OUTPUTS
 # ============================================================
 
 print("\n" + "=" * 78)
-print("ERGEBNISRELEVANTE DESKRIPTIVE STATISTIKEN")
+print("KEY DESCRIPTIVE STATISTICS")
 print("=" * 78)
 
 
-print("\n1. Populismus insgesamt auf Redeebene:")
+print("\n1. Populism overall at speech level:")
 
 print(
     speech_scores_overall.loc[
         speech_scores_overall["construct"]
-        == "Populismus",
+        == "Populism",
         [
             "variable_label",
             "n_valid",
@@ -1959,7 +1958,7 @@ print(
 )
 
 
-print("\n2. Populismus-Prävalenz:")
+print("\n2. Populism prevalence:")
 
 print(
     populism_prevalence[
@@ -1977,7 +1976,7 @@ print(
 )
 
 
-print("\n3. GAL-TAN insgesamt auf Redeebene:")
+print("\n3. GAL-TAN overall at speech level:")
 
 print(
     speech_scores_overall.loc[
@@ -1998,7 +1997,7 @@ print(
 )
 
 
-print("\n4. GAL-TAN-Themenhäufigkeiten:")
+print("\n4. GAL-TAN topic frequencies:")
 
 print(
     gal_tan_topic_prevalence[
@@ -2015,7 +2014,7 @@ print(
 )
 
 
-print("\n5. Populismus nach Partei:")
+print("\n5. Populism by party:")
 
 print(
     populism_party_rankings[
@@ -2033,7 +2032,7 @@ print(
 )
 
 
-print("\n6. GAL-TAN nach Partei:")
+print("\n6. GAL-TAN by party:")
 
 print(
     gal_tan_party_rankings[
@@ -2051,7 +2050,7 @@ print(
 )
 
 
-print("\n7. Mainstream-Werte auf Redeebene:")
+print("\n7. Mainstream values at speech level:")
 
 print(
     mainstream_speech_stats[
@@ -2069,8 +2068,8 @@ print(
 
 
 print(
-    "\n8. Partei-Intervall-Ebene: "
-    "Gesamtscores und Distanzen"
+    "\n8. Party-interval level: "
+    "overall scores and distances"
 )
 
 print(
@@ -2090,8 +2089,8 @@ print(
 
 
 print(
-    "\n9. Partei-Intervall-Ebene: "
-    "Subdimensionswerte und Distanzen"
+    "\n9. Party-interval level: "
+    "subdimension values and distances"
 )
 
 print(
@@ -2110,7 +2109,7 @@ print(
 )
 
 
-print("\n10. Unterstützungsveränderung:")
+print("\n10. Change in support:")
 
 print(
     support_change_descriptives
@@ -2120,8 +2119,8 @@ print(
 
 
 print(
-    "\n11. Verluste, unveränderte Werte "
-    "und Gewinne:"
+    "\n11. Losses, unchanged values "
+    "and gains:"
 )
 
 print(
@@ -2132,8 +2131,8 @@ print(
 
 
 print(
-    "\n12. Aggregierte Mainstream-Ebene: "
-    "Gesamtscores und Distanzen"
+    "\n12. Aggregated mainstream level: "
+    "overall scores and distances"
 )
 
 print(
@@ -2153,8 +2152,8 @@ print(
 
 
 print(
-    "\n13. Aggregierte Mainstream-Ebene: "
-    "Subdimensionswerte und Distanzen"
+    "\n13. Aggregated mainstream level: "
+    "subdimension values and distances"
 )
 
 print(
@@ -2173,7 +2172,7 @@ print(
 )
 
 
-print("\n14. Anzahl der Reden pro Partei:")
+print("\n14. Number of speeches per party:")
 
 print(
     speech_counts_by_party
@@ -2182,7 +2181,7 @@ print(
 )
 
 
-print("\n15. Anzahl der Reden pro Wahlperiode:")
+print("\n15. Number of speeches per electoral term:")
 
 print(
     speech_counts_by_wahlperiode
@@ -2191,7 +2190,7 @@ print(
 )
 
 
-print("\n16. Wortanzahl:")
+print("\n16. Word count:")
 
 print(
     word_count_overall
@@ -2201,10 +2200,10 @@ print(
 
 
 print("\n" + "=" * 78)
-print("AUSWERTUNG ABGESCHLOSSEN")
+print("ANALYSIS COMPLETE")
 print("=" * 78)
 
 print(
-    f"\nCSV-Dateien gespeichert unter:\n"
+    f"\nCSV files saved to:\n"
     f"{OUTPUT_DIR.resolve()}"
 )

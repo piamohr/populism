@@ -1,38 +1,38 @@
 # ============================================================
-# FF1: GAL-TAN-SUBDIMENSIONEN
-# AUF PARTEI-INTERVALL-EBENE
+# RQ1: GAL-TAN SUBDIMENSIONS
+# AT THE PARTY-INTERVAL LEVEL
 #
-# Forschungsfrage:
-# Unterscheiden sich die GAL-TAN-Subdimensionen hinsichtlich
-# ihres Zusammenhangs mit der Unterstützung der AfD?
+# Research question:
+# Do the GAL-TAN subdimensions differ in their relationship
+# with support for the AfD?
 #
-# Die Forschungsfrage wird mit zwei komplementären
-# Operationalisierungen untersucht:
+# The research question is examined with two complementary
+# operationalizations:
 #
-# MODELLGRUPPE A: Distanz zur AfD
-#   AVs: dimensionsspezifische Distanzen zur AfD
+# MODEL GROUP A: Distance to the AfD
+#   DVs: dimension-specific distances to the AfD
 #   Interpretation:
-#   Ein negativer Koeffizient bedeutet, dass die Distanz zur AfD
-#   mit steigender AfD-Unterstützung abnimmt.
+#   A negative coefficient means that the distance to the AfD
+#   decreases as AfD support increases.
 #
-# MODELLGRUPPE B: Absolute GAL-TAN-Positionen
-#   AVs: absolute Mittelwerte der fünf GAL-TAN-Subdimensionen
+# MODEL GROUP B: Absolute GAL-TAN positions
+#   DVs: absolute means of the five GAL-TAN subdimensions
 #   Interpretation:
-#   Ein positiver Koeffizient bedeutet, dass sich die jeweilige
-#   Position mit steigender AfD-Unterstützung in Richtung TAN
-#   verschiebt, sofern höhere Werte den TAN-Pol abbilden.
+#   A positive coefficient means that the respective position
+#   shifts toward TAN as AfD support increases, provided that
+#   higher values represent the TAN pole.
 #
-# Vorgehen für beide Operationalisierungen:
-# 1. Separates Fixed-Effects-Modell je Subdimension
-# 2. Paarweise Differenzmodelle zum Vergleich der Koeffizienten
-# 3. Partei-Fixed-Effects
-# 4. Wahlperioden-Fixed-Effects
-# 5. Clusterrobuste Standardfehler auf Parteiebene
-# 6. Wild-Cluster-Bootstrap WCR11 und WCR31
-# 7. Holm-Korrektur der dimensionsspezifischen und paarweisen Tests
+# Procedure for both operationalizations:
+# 1. Separate fixed-effects model per subdimension
+# 2. Pairwise difference models to compare the coefficients
+# 3. Party fixed effects
+# 4. Electoral-term fixed effects
+# 5. Cluster-robust standard errors at the party level
+# 6. Wild cluster bootstrap WCR11 and WCR31
+# 7. Holm correction of the dimension-specific and pairwise tests
 #
-# Alle Ergebniswerte werden mit drei Nachkommastellen
-# ausgegeben und gespeichert.
+# All result values are printed and saved with three
+# decimal places.
 # ============================================================
 
 from itertools import combinations
@@ -46,7 +46,7 @@ from wildboottest.wildboottest import wildboottest
 
 
 # ============================================================
-# 1. EINSTELLUNGEN
+# 1. SETTINGS
 # ============================================================
 
 INPUT_FILE = Path(
@@ -72,11 +72,11 @@ ALPHA = 0.05
 DECIMALS = 3
 
 # True:
-# Innerhalb jeder Operationalisierung verwenden alle fünf
-# Dimensionsmodelle dieselben vollständigen Partei-Intervalle.
+# Within each operationalization, all five dimension models
+# use the same complete party intervals.
 #
 # False:
-# Jede Dimension verwendet ihre maximal verfügbare Stichprobe.
+# Each dimension uses its maximum available sample.
 USE_COMMON_COMPLETE_CASE_SAMPLE = True
 
 MAINSTREAM_PARTIES = {
@@ -88,14 +88,14 @@ MAINSTREAM_PARTIES = {
 }
 
 DIMENSION_LABELS = {
-    "G1_environment": "Umwelt",
+    "G1_environment": "Environment",
     "G2_migration": "Migration",
-    "G3_society": "Gesellschaftspolitik",
-    "G4_civil_rights": "Bürgerrechte",
-    "G5_cosmopolitanism": "Kosmopolitismus",
+    "G3_society": "Social policy",
+    "G4_civil_rights": "Civil rights",
+    "G5_cosmopolitanism": "Cosmopolitanism",
 }
 
-# Distanzvariablen sind im bisherigen Datensatz eindeutig benannt.
+# Distance variables are named unambiguously in the existing dataset.
 DISTANCE_DIMENSIONS = {
     "G1_environment": "G1_environment_distance_to_afd",
     "G2_migration": "G2_migration_distance_to_afd",
@@ -106,7 +106,7 @@ DISTANCE_DIMENSIONS = {
     ),
 }
 
-# Absolute Subdimensionswerte aus
+# Absolute subdimension values from
 # 05_party_polling_interval_distances.csv.
 ABSOLUTE_DIMENSIONS = {
     "G1_environment": "mean_G1_environment",
@@ -118,11 +118,11 @@ ABSOLUTE_DIMENSIONS = {
 
 
 # ============================================================
-# 2. HILFSFUNKTIONEN
+# 2. HELPER FUNCTIONS
 # ============================================================
 
 def mainstream_mask(series: pd.Series) -> pd.Series:
-    """Erzeugt einen robusten Filter für die Mainstream-Variable."""
+    """Create a robust filter for the mainstream variable."""
     if pd.api.types.is_bool_dtype(series):
         return series.fillna(False)
 
@@ -144,7 +144,7 @@ def save_result_dataframe(
     dataframe: pd.DataFrame,
     output_file: Path,
 ) -> None:
-    """Speichert numerische Werte mit drei Nachkommastellen."""
+    """Save numeric values with three decimal places."""
     dataframe.to_csv(
         output_file,
         index=False,
@@ -156,33 +156,33 @@ def create_pairwise_report_table(
     pairwise_results: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Erstellt eine kompakte Berichtstabelle mit allen paarweisen
-    Vergleichen der GAL-TAN-Subdimensionen.
+    Create a compact report table with all pairwise comparisons
+    of the GAL-TAN subdimensions.
 
-    Die Tabelle enthält sowohl die clusterrobuste Standardinferenz
-    als auch die WCR11- und WCR31-Ergebnisse einschließlich der
-    jeweiligen Holm-Korrekturen.
+    The table contains the standard cluster-robust inference as
+    well as the WCR11 and WCR31 results, including the respective
+    Holm corrections.
     """
     report_table = pairwise_results.copy()
 
     operationalization_labels = {
-        "distance": "Distanz zur AfD",
-        "absolute": "Absolute GAL-TAN-Position",
+        "distance": "Distance to the AfD",
+        "absolute": "Absolute GAL-TAN position",
     }
 
-    report_table["Operationalisierung"] = (
+    report_table["Operationalization"] = (
         report_table["operationalization"]
         .map(operationalization_labels)
         .fillna(report_table["operationalization"])
     )
 
-    report_table["Vergleich"] = (
+    report_table["Comparison"] = (
         report_table["dimension_a_label"]
         + " – "
         + report_table["dimension_b_label"]
     )
 
-    report_table["b_Differenz"] = (
+    report_table["b_difference"] = (
         report_table["slope_difference"]
     )
 
@@ -190,11 +190,11 @@ def create_pairwise_report_table(
         report_table["cluster_robust_se"]
     )
 
-    report_table["KI_95_unten"] = (
+    report_table["CI_95_low"] = (
         report_table["ci_95_low"]
     )
 
-    report_table["KI_95_oben"] = (
+    report_table["CI_95_high"] = (
         report_table["ci_95_high"]
     )
 
@@ -222,19 +222,19 @@ def create_pairwise_report_table(
         report_table["wcr31_p_value_holm"]
     )
 
-    report_table["Signifikanz_cluster"] = np.where(
+    report_table["Significance_cluster"] = np.where(
         report_table["p_value_holm"] < ALPHA,
         "*",
         "",
     )
 
-    report_table["Signifikanz_WCR11"] = np.where(
+    report_table["Significance_WCR11"] = np.where(
         report_table["wcr11_p_value_holm"] < ALPHA,
         "*",
         "",
     )
 
-    report_table["Signifikanz_WCR31"] = np.where(
+    report_table["Significance_WCR31"] = np.where(
         report_table["wcr31_p_value_holm"] < ALPHA,
         "†",
         "",
@@ -242,21 +242,21 @@ def create_pairwise_report_table(
 
     report_table = report_table[
         [
-            "Operationalisierung",
-            "Vergleich",
-            "b_Differenz",
+            "Operationalization",
+            "Comparison",
+            "b_difference",
             "SE_cluster",
-            "KI_95_unten",
-            "KI_95_oben",
+            "CI_95_low",
+            "CI_95_high",
             "p_cluster",
             "p_cluster_Holm",
             "p_WCR11",
             "p_WCR11_Holm",
             "p_WCR31",
             "p_WCR31_Holm",
-            "Signifikanz_cluster",
-            "Signifikanz_WCR11",
-            "Signifikanz_WCR31",
+            "Significance_cluster",
+            "Significance_WCR11",
+            "Significance_WCR31",
             "n_observations",
             "n_clusters",
             "n_periods",
@@ -264,21 +264,21 @@ def create_pairwise_report_table(
     ].rename(
         columns={
             "n_observations": "N",
-            "n_clusters": "Cluster",
-            "n_periods": "Wahlperioden",
+            "n_clusters": "Clusters",
+            "n_periods": "Electoral_terms",
         }
     )
 
     operationalization_order = pd.CategoricalDtype(
         categories=[
-            "Distanz zur AfD",
-            "Absolute GAL-TAN-Position",
+            "Distance to the AfD",
+            "Absolute GAL-TAN position",
         ],
         ordered=True,
     )
 
-    report_table["Operationalisierung"] = (
-        report_table["Operationalisierung"]
+    report_table["Operationalization"] = (
+        report_table["Operationalization"]
         .astype(operationalization_order)
     )
 
@@ -286,8 +286,8 @@ def create_pairwise_report_table(
         report_table
         .sort_values(
             [
-                "Operationalisierung",
-                "Vergleich",
+                "Operationalization",
+                "Comparison",
             ]
         )
         .reset_index(drop=True)
@@ -301,12 +301,12 @@ def extract_parameter(
     robust_result,
     parameter_name: str,
 ) -> dict:
-    """Extrahiert die Kennwerte des interessierenden Parameters."""
+    """Extract the statistics of the parameter of interest."""
     parameter_names = ols_result.model.exog_names
 
     if parameter_name not in parameter_names:
         raise ValueError(
-            f"Parameter '{parameter_name}' wurde nicht gefunden."
+            f"Parameter '{parameter_name}' was not found."
         )
 
     parameter_index = parameter_names.index(
@@ -344,8 +344,8 @@ def fit_cluster_model(
     data: pd.DataFrame,
 ):
     """
-    Schätzt ein OLS-Modell mit Partei- und Wahlperioden-FE
-    sowie clusterrobusten Standardfehlern.
+    Estimate an OLS model with party and electoral-term FE
+    and cluster-robust standard errors.
     """
     model = smf.ols(
         formula=formula,
@@ -361,8 +361,8 @@ def fit_cluster_model(
 
     if len(cluster_array) != int(ols_result.nobs):
         raise ValueError(
-            "Die Zahl der Clusterkennungen stimmt nicht mit "
-            "der Zahl der Modellbeobachtungen überein."
+            "The number of cluster identifiers does not match "
+            "the number of model observations."
         )
 
     robust_result = (
@@ -387,7 +387,7 @@ def extract_bootstrap_p_value(
     bootstrap_result,
     parameter_name: str,
 ) -> float:
-    """Extrahiert den p-Wert aus wildboottest."""
+    """Extract the p-value from wildboottest."""
     if not isinstance(
         bootstrap_result,
         pd.DataFrame,
@@ -419,8 +419,8 @@ def run_wild_cluster_bootstrap(
     bootstrap_type: str,
 ) -> float:
     """
-    Führt einen Wild-Cluster-Bootstrap aus und gibt den
-    extrahierten p-Wert zurück.
+    Run a wild cluster bootstrap and return the
+    extracted p-value.
     """
     try:
         result = wildboottest(
@@ -441,8 +441,8 @@ def run_wild_cluster_bootstrap(
 
     except Exception as error:
         print(
-            f"Bootstrap {bootstrap_type} für "
-            f"'{parameter_name}' fehlgeschlagen: "
+            f"Bootstrap {bootstrap_type} for "
+            f"'{parameter_name}' failed: "
             f"{type(error).__name__}: {error}"
         )
         return np.nan
@@ -451,7 +451,7 @@ def run_wild_cluster_bootstrap(
 def holm_adjustment(
     p_values: pd.Series,
 ) -> pd.Series:
-    """Berechnet Holm-korrigierte p-Werte."""
+    """Compute Holm-adjusted p-values."""
     valid = p_values.dropna()
     sorted_indices = valid.sort_values().index
     n_tests = len(valid)
@@ -490,7 +490,7 @@ def prepare_base_data(
     data: pd.DataFrame,
     all_outcomes: list[str],
 ) -> pd.DataFrame:
-    """Filtert Mainstream-Parteien und bereitet Variablen auf."""
+    """Filter mainstream parties and prepare variables."""
     required_columns = [
         AFD_SUPPORT,
         PARTY,
@@ -507,7 +507,7 @@ def prepare_base_data(
 
     if missing_columns:
         raise ValueError(
-            "Folgende Variablen fehlen:\n"
+            "The following variables are missing:\n"
             + "\n".join(
                 f"- {column}"
                 for column in missing_columns
@@ -567,7 +567,7 @@ def create_descriptives(
     dimensions: dict,
     operationalization: str,
 ) -> pd.DataFrame:
-    """Erstellt deskriptive Statistiken je Subdimension."""
+    """Create descriptive statistics per subdimension."""
     rows = []
 
     for dimension_key, outcome in dimensions.items():
@@ -605,7 +605,7 @@ def run_dimension_models(
     operationalization: str,
     expected_direction: str,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Schätzt ein Modell für jede der fünf Subdimensionen."""
+    """Estimate a model for each of the five subdimensions."""
     model_rows = []
     bootstrap_rows = []
 
@@ -787,8 +787,8 @@ def run_pairwise_models(
     operationalization: str,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Vergleicht die AfD-Koeffizienten der Subdimensionen über
-    paarweise Differenzmodelle.
+    Compare the AfD coefficients of the subdimensions using
+    pairwise difference models.
     """
     pairwise_rows = []
     bootstrap_rows = []
@@ -994,7 +994,7 @@ def run_operationalization(
     dimensions: dict,
     expected_direction: str,
 ) -> dict:
-    """Führt alle Analysen für eine Operationalisierung aus."""
+    """Run all analyses for one operationalization."""
     if USE_COMMON_COMPLETE_CASE_SAMPLE:
         analysis_df = base_df.dropna(
             subset=list(dimensions.values())
@@ -1004,7 +1004,7 @@ def run_operationalization(
 
     if analysis_df.empty:
         raise ValueError(
-            f"Die Stichprobe für '{operationalization}' ist leer."
+            f"The sample for '{operationalization}' is empty."
         )
 
     afd_support_mean = analysis_df[
@@ -1023,19 +1023,19 @@ def run_operationalization(
     print("#" * 78)
 
     print(
-        f"Partei-Intervalle: "
+        f"Party intervals: "
         f"{len(analysis_df)}"
     )
     print(
-        f"Parteien/Cluster: "
+        f"Parties/clusters: "
         f"{analysis_df[PARTY].nunique()}"
     )
     print(
-        f"Wahlperioden: "
+        f"Electoral terms: "
         f"{analysis_df[PERIOD].nunique()}"
     )
     print(
-        f"Mittelwert AfD-Unterstützung: "
+        f"Mean AfD support: "
         f"{afd_support_mean:.3f}"
     )
 
@@ -1045,7 +1045,7 @@ def run_operationalization(
         operationalization=operationalization,
     )
 
-    print("\nDeskriptive Statistiken:")
+    print("\nDescriptive statistics:")
     print(
         descriptives[
             [
@@ -1072,7 +1072,7 @@ def run_operationalization(
         expected_direction=expected_direction,
     )
 
-    print("\nDimensionsspezifische Modelle:")
+    print("\nDimension-specific models:")
     print(
         dimension_results[
             [
@@ -1102,7 +1102,7 @@ def run_operationalization(
         operationalization=operationalization,
     )
 
-    print("\nPaarweise Vergleiche:")
+    print("\nPairwise comparisons:")
     print(
         pairwise_results[
             [
@@ -1184,12 +1184,12 @@ def run_operationalization(
 
 
 # ============================================================
-# 3. DATEN EINLESEN UND SPALTEN PRÜFEN
+# 3. LOAD DATA AND CHECK COLUMNS
 # ============================================================
 
 if not INPUT_FILE.exists():
     raise FileNotFoundError(
-        f"Datei nicht gefunden:\n"
+        f"File not found:\n"
         f"{INPUT_FILE.resolve()}"
     )
 
@@ -1200,13 +1200,13 @@ df = pd.read_csv(
 absolute_dimensions = ABSOLUTE_DIMENSIONS.copy()
 
 print("=" * 78)
-print("RQ1: GAL-TAN-Subdimensionen")
+print("RQ1: GAL-TAN subdimensions")
 print("=" * 78)
-print(f"Datei: {INPUT_FILE}")
-print(f"Zeilen im Gesamtdatensatz: {len(df)}")
-print(f"Spalten im Gesamtdatensatz: {len(df.columns)}")
+print(f"File: {INPUT_FILE}")
+print(f"Rows in the full dataset: {len(df)}")
+print(f"Columns in the full dataset: {len(df.columns)}")
 
-print("\nVerwendete absolute Subdimensionsvariablen:")
+print("\nAbsolute subdimension variables used:")
 for dimension, column in absolute_dimensions.items():
     print(
         f"- {DIMENSION_LABELS[dimension]}: "
@@ -1229,7 +1229,7 @@ base_df = prepare_base_data(
 
 
 # ============================================================
-# 4. BEIDE OPERATIONALISIERUNGEN SCHÄTZEN
+# 4. ESTIMATE BOTH OPERATIONALIZATIONS
 # ============================================================
 
 distance_results = run_operationalization(
@@ -1248,7 +1248,7 @@ absolute_results = run_operationalization(
 
 
 # ============================================================
-# 5. GEMEINSAME ERGEBNISTABELLEN
+# 5. COMBINED RESULTS TABLES
 # ============================================================
 
 combined_descriptives = pd.concat(
@@ -1346,8 +1346,8 @@ try:
     )
 except ImportError:
     print(
-        "Excel-Datei konnte nicht erstellt werden. "
-        "Installiere dafür openpyxl mit:\n"
+        "The Excel file could not be created. "
+        "Install openpyxl with:\n"
         "pip install openpyxl"
     )
 
@@ -1365,14 +1365,14 @@ save_result_dataframe(
 
 
 # ============================================================
-# 6. ABSCHLUSSAUSGABE
+# 6. FINAL OUTPUT
 # ============================================================
 
 print("\n\n" + "=" * 78)
-print("RQ1: ALLE ANALYSEN ABGESCHLOSSEN")
+print("RQ1: ALL ANALYSES COMPLETED")
 print("=" * 78)
 
-print("\nDimensionsmodelle im Vergleich:")
+print("\nDimension models compared:")
 print(
     combined_dimension_results[
         [
@@ -1391,7 +1391,7 @@ print(
     .to_string(index=False)
 )
 
-print("\nAlle paarweisen Vergleiche:")
+print("\nAll pairwise comparisons:")
 print(
     pairwise_report_table
     .round(DECIMALS)
@@ -1399,14 +1399,13 @@ print(
 )
 
 print(
-    "\nHinweis zur Interpretation:\n"
-    "- Bei den Distanzmodellen bedeutet ein negativer "
-    "Koeffizient eine abnehmende Distanz zur AfD.\n"
-    "- Bei den absoluten Modellen bedeutet ein positiver "
-    "Koeffizient eine Verschiebung in Richtung TAN, sofern "
-    "höhere Werte den TAN-Pol darstellen.\n"
-    "- Die paarweisen Differenzmodelle testen, ob sich die "
-    "AfD-Koeffizienten zweier Subdimensionen unterscheiden.\n"
-    "- Alle Modelle enthalten Partei- und "
-    "Wahlperioden-Fixed-Effects."
+    "\nNote on interpretation:\n"
+    "- In the distance models, a negative coefficient means a "
+    "decreasing distance to the AfD.\n"
+    "- In the absolute models, a positive coefficient means a "
+    "shift toward TAN, provided that higher values represent the "
+    "TAN pole.\n"
+    "- The pairwise difference models test whether the AfD "
+    "coefficients of two subdimensions differ.\n"
+    "- All models include party and electoral-term fixed effects."
 )

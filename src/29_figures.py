@@ -1,19 +1,19 @@
 # ============================================================
-# APA-7-ABBILDUNGEN: H1a/H2a, FF1/FF2 UND ZEITVERLÄUFE
+# APA 7 FIGURES: H1a/H2a, RQ1/RQ2 AND TIME SERIES
 #
-# Erzeugte Abbildungen:
+# Figures created:
 # 1. figure_h1a_interaction.png
-#    Links: Distanzwerte | Rechts: absolute Werte
+#    Left: distance values | Right: absolute values
 # 2. figure_h2a_interaction.png
-#    Links: Distanzwerte | Rechts: absolute Werte
+#    Left: distance values | Right: absolute values
 # 3. figure_ff1_pairwise_matrix.png
-#    Links: Distanzwerte | Rechts: absolute Werte
+#    Left: distance values | Right: absolute values
 # 4. figure_ff2_pairwise_matrix.png
-#    Links: Distanzwerte | Rechts: absolute Werte
+#    Left: distance values | Right: absolute values
 # 5. figure_gal_tan_scores_and_afd_poll_over_time.png
 # 6. figure_populism_scores_and_afd_poll_over_time.png
 #
-# Ausgabe ausschließlich als PNG mit 300 dpi.
+# Output exclusively as PNG at 300 dpi.
 # ============================================================
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ import pandas as pd
 
 
 # ============================================================
-# 1. DATEIPFADE
+# 1. FILE PATHS
 # ============================================================
 
 RESULTS_DIR = Path("results")
@@ -41,7 +41,7 @@ PARTY_INTERVAL_FILE = Path(
 )
 
 # ------------------------------------------------------------
-# H1a/H2a: Vorhersagedateien
+# H1a/H2a: prediction files
 # ------------------------------------------------------------
 
 H1A_DISTANCE_PREDICTION_FILE = (
@@ -58,7 +58,7 @@ H2A_ABSOLUTE_PREDICTION_FILE = (
 )
 
 # ------------------------------------------------------------
-# FF1/FF2: Paarweise Vergleiche
+# RQ1/RQ2: pairwise comparisons
 # ------------------------------------------------------------
 
 FF1_DISTANCE_PAIRWISE_FILE = (
@@ -76,7 +76,7 @@ FF2_ABSOLUTE_PAIRWISE_FILE = (
 
 
 # ============================================================
-# 2. APA-ÄHNLICHE GRUNDEINSTELLUNGEN
+# 2. APA-LIKE BASE SETTINGS
 # ============================================================
 
 mpl.rcParams.update(
@@ -119,12 +119,12 @@ PARTY_COLORS = {
 
 
 # ============================================================
-# 3. ALLGEMEINE HILFSFUNKTIONEN
+# 3. GENERAL HELPER FUNCTIONS
 # ============================================================
 
 def check_file(file_path: Path) -> None:
     if not file_path.exists():
-        raise FileNotFoundError(f"Datei nicht gefunden:\n{file_path.resolve()}")
+        raise FileNotFoundError(f"File not found:\n{file_path.resolve()}")
 
 
 def check_columns(
@@ -135,7 +135,7 @@ def check_columns(
     missing = [column for column in required_columns if column not in df.columns]
     if missing:
         raise ValueError(
-            f"In {file_description} fehlen folgende Spalten:\n"
+            f"The following columns are missing in {file_description}:\n"
             + "\n".join(f"- {column}" for column in missing)
         )
 
@@ -149,7 +149,7 @@ def remove_chart_junk(ax: plt.Axes) -> None:
 
 
 def save_figure(fig: plt.Figure, filename_stem: str) -> None:
-    """Speichert ausschließlich eine PNG-Datei mit 300 dpi."""
+    """Saves exclusively a PNG file at 300 dpi."""
     png_file = FIGURE_DIR / f"{filename_stem}.png"
     fig.savefig(
         png_file,
@@ -157,18 +157,18 @@ def save_figure(fig: plt.Figure, filename_stem: str) -> None:
         bbox_inches="tight",
         facecolor="white",
     )
-    print(f"Gespeichert: {png_file}")
+    print(f"Saved: {png_file}")
 
 
 # ============================================================
-# 4. H1a/H2a: INTERAKTIONSPLOTS MIT ZWEI PANELS
+# 4. H1a/H2a: TWO-PANEL INTERACTION PLOTS
 # ============================================================
 
 def prepare_interaction_data(
     file_path: Path,
     prediction_column: str,
 ) -> tuple[pd.DataFrame, str, str, str]:
-    """Liest und bereinigt eine Vorhersagedatei für einen Interaktionsplot."""
+    """Reads and cleans a prediction file for an interaction plot."""
     check_file(file_path)
     df = pd.read_csv(file_path)
 
@@ -177,7 +177,7 @@ def prepare_interaction_data(
     check_columns(
         df,
         [x_column, group_column, prediction_column],
-        f"der Vorhersagedatei {file_path}",
+        f"the prediction file {file_path}",
     )
 
     numeric_columns = [x_column, group_column, prediction_column]
@@ -187,19 +187,19 @@ def prepare_interaction_data(
     df = df.dropna(subset=numeric_columns).copy()
     if df.empty:
         raise ValueError(
-            f"Keine gültigen Vorhersagewerte in:\n{file_path}\n\n"
-            f"Verwendete Spalten:\n"
-            f"- AfD-Unterstützung: {x_column}\n"
+            f"No valid predicted values in:\n{file_path}\n\n"
+            f"Columns used:\n"
+            f"- AfD support: {x_column}\n"
             f"- Moderator: {group_column}\n"
-            f"- Vorhersage: {prediction_column}"
+            f"- Prediction: {prediction_column}"
         )
 
-    print("\nEingelesene Interaktionsdaten:")
-    print(f"Datei: {file_path}")
-    print(f"x-Spalte: {x_column}")
-    print(f"Gruppenspalte: {group_column}")
-    print(f"Vorhersagespalte: {prediction_column}")
-    print(f"Gültige Zeilen: {len(df)}")
+    print("\nInteraction data loaded:")
+    print(f"File: {file_path}")
+    print(f"x column: {x_column}")
+    print(f"Group column: {group_column}")
+    print(f"Prediction column: {prediction_column}")
+    print(f"Valid rows: {len(df)}")
 
     return df, x_column, group_column, prediction_column
 
@@ -238,7 +238,7 @@ def draw_interaction_panel(
         ax.plot(
             group[x_column],
             group[prediction_column],
-            label=party_labels.get(value_int, f"Nähe = {value_int}"),
+            label=party_labels.get(value_int, f"Proximity = {value_int}"),
             linestyle=line_styles.get(value_int, "-"),
             marker=markers.get(value_int, "o"),
             markevery=marker_positions,
@@ -250,7 +250,7 @@ def draw_interaction_panel(
         )
 
     ax.set_title(panel_title, fontsize=12, pad=8)
-    ax.set_xlabel("AfD-Unterstützung in Prozentpunkten")
+    ax.set_xlabel("AfD support in percentage points")
     ax.set_ylabel(y_label, fontsize=12)
     ax.tick_params(axis="both", labelsize=11)
     ax.grid(axis="y", linewidth=0.5, color="0.88")
@@ -283,10 +283,10 @@ def create_paired_interaction_plot(
     )
 
     draw_interaction_panel(
-        axes[0], *distance, "Distanzwerte", distance_y_label
+        axes[0], *distance, "Distance values", distance_y_label
     )
     draw_interaction_panel(
-        axes[1], *absolute, "Absolute Werte", absolute_y_label
+        axes[1], *absolute, "Absolute values", absolute_y_label
     )
 
     handles, labels = axes[0].get_legend_handles_labels()
@@ -313,8 +313,8 @@ def create_h1a_interaction_plot() -> None:
         H1A_ABSOLUTE_PREDICTION_FILE,
         distance_prediction_column="predicted_distance",
         absolute_prediction_column="predicted_gal_tan",
-        distance_y_label="Vorhergesagte GAL–TAN-Distanz zur AfD",
-        absolute_y_label="Vorhergesagter absoluter GAL–TAN-Gesamtscore",
+        distance_y_label="Predicted GAL–TAN distance to the AfD",
+        absolute_y_label="Predicted absolute GAL–TAN overall score",
         filename_stem="figure_h1a_interaction",
     )
 
@@ -325,14 +325,14 @@ def create_h2a_interaction_plot() -> None:
         H2A_ABSOLUTE_PREDICTION_FILE,
         distance_prediction_column="predicted_distance",
         absolute_prediction_column="predicted_populism",
-        distance_y_label="Vorhergesagte Populismus-Distanz zur AfD",
-        absolute_y_label="Vorhergesagter absoluter Populismus-Gesamtscore",
+        distance_y_label="Predicted populism distance to the AfD",
+        absolute_y_label="Predicted absolute populism overall score",
         filename_stem="figure_h2a_interaction",
     )
 
 
 # ============================================================
-# 5. FF1/FF2: PAARWEISE MATRIZEN MIT ZWEI PANELS
+# 5. RQ1/RQ2: TWO-PANEL PAIRWISE MATRICES
 # ============================================================
 
 def load_pairwise_matrix_data(
@@ -342,12 +342,12 @@ def load_pairwise_matrix_data(
     preferred_order: list[str] | None = None,
 ) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """
-    Liest die paarweisen Vergleiche ein und erzeugt eine symmetrische
-    Matrix der Koeffizientendifferenzen.
+    Reads the pairwise comparisons and creates a symmetric
+    matrix of coefficient differences.
 
-    Für FF1 werden die Spalten dimension_a_label und
-    dimension_b_label verwendet. Für FF2 werden feature_a_label und
-    feature_b_label verwendet.
+    For RQ1, the columns dimension_a_label and
+    dimension_b_label are used. For RQ2, feature_a_label and
+    feature_b_label are used.
     """
     check_file(file_path)
     df = pd.read_csv(file_path)
@@ -358,7 +358,7 @@ def load_pairwise_matrix_data(
     check_columns(
         df,
         [label_a_column, label_b_column, difference_column, p_column, wcr31_column],
-        f"der paarweisen Vergleichsdatei {file_path}",
+        f"the pairwise comparison file {file_path}",
     )
 
     numeric_columns = [
@@ -403,7 +403,7 @@ def load_pairwise_matrix_data(
 
     if not order:
         raise ValueError(
-            f"Keine gültigen Merkmalsbezeichnungen in:\n{file_path}"
+            f"No valid feature labels in:\n{file_path}"
         )
 
     n = len(order)
@@ -454,12 +454,12 @@ def load_pairwise_matrix_data(
             f"{-difference:+.3f}{significance_marker}"
         )
 
-    print("\nEingelesene Paarvergleichsdaten:")
-    print(f"Datei: {file_path}")
-    print(f"Merkmal A: {label_a_column}")
-    print(f"Merkmal B: {label_b_column}")
-    print(f"Differenz: {difference_column}")
-    print(f"Reihenfolge: {order}")
+    print("\nPairwise comparison data loaded:")
+    print(f"File: {file_path}")
+    print(f"Feature A: {label_a_column}")
+    print(f"Feature B: {label_b_column}")
+    print(f"Difference: {difference_column}")
+    print(f"Order: {order}")
 
     return values, labels, order
 
@@ -584,10 +584,10 @@ def create_paired_pairwise_matrix(
 
     if distance_order != absolute_order:
         raise ValueError(
-            "Die Merkmale oder ihre Reihenfolge unterscheiden sich "
-            "zwischen Distanz- und Absolutwertdatei.\n"
-            f"Distanz: {distance_order}\n"
-            f"Absolut: {absolute_order}"
+            "The features or their order differ "
+            "between the distance file and the absolute-value file.\n"
+            f"Distance: {distance_order}\n"
+            f"Absolute: {absolute_order}"
         )
 
     maxima = [
@@ -613,7 +613,7 @@ def create_paired_pairwise_matrix(
         values=distance_values,
         labels=distance_labels,
         dimensions=distance_order,
-        panel_title="Distanzwerte",
+        panel_title="Distance values",
         vmax=vmax,
         x_axis_label=x_axis_label,
         y_axis_label=y_axis_label,
@@ -624,14 +624,14 @@ def create_paired_pairwise_matrix(
         values=absolute_values,
         labels=absolute_labels,
         dimensions=absolute_order,
-        panel_title="Absolute Werte",
+        panel_title="Absolute values",
         vmax=vmax,
         x_axis_label=x_axis_label,
         y_axis_label=y_axis_label,
     )
 
-    # Mehr Platz rechts reservieren, damit die Farbskalen-Legende
-    # nicht in das rechte Panel hineinragt.
+    # Reserve more space on the right so that the color-scale legend
+    # does not overlap the right panel.
     fig.subplots_adjust(
         left=0.08,
         right=0.84,
@@ -646,7 +646,7 @@ def create_paired_pairwise_matrix(
         cax=cbar_ax,
     )
     colorbar.set_label(
-        "Absolute Differenz der\nRegressionskoeffizienten",
+        "Absolute difference in\nregression coefficients",
         fontsize=11,
         labelpad=10,
     )
@@ -657,18 +657,18 @@ def create_paired_pairwise_matrix(
 
 
 def create_ff1_pairwise_matrix() -> None:
-    """FF1: Vergleich der fünf GAL–TAN-Subdimensionen."""
+    """RQ1: Comparison of the five GAL–TAN subdimensions."""
     create_paired_pairwise_matrix(
         distance_file=FF1_DISTANCE_PAIRWISE_FILE,
         absolute_file=FF1_ABSOLUTE_PAIRWISE_FILE,
         label_a_column="dimension_a_label",
         label_b_column="dimension_b_label",
         preferred_order=[
-            "Umwelt",
+            "Environment",
             "Migration",
-            "Gesellschaftspolitik",
-            "Bürgerrechte",
-            "Kosmopolitismus",
+            "Social policy",
+            "Civil rights",
+            "Cosmopolitanism",
         ],
         x_axis_label="Subdimension B",
         y_axis_label="Subdimension A",
@@ -677,25 +677,25 @@ def create_ff1_pairwise_matrix() -> None:
 
 
 def create_ff2_pairwise_matrix() -> None:
-    """FF2: Vergleich der drei Merkmale populistischer Kommunikation."""
+    """RQ2: Comparison of the three features of populist communication."""
     create_paired_pairwise_matrix(
         distance_file=FF2_DISTANCE_PAIRWISE_FILE,
         absolute_file=FF2_ABSOLUTE_PAIRWISE_FILE,
         label_a_column="feature_a_label",
         label_b_column="feature_b_label",
         preferred_order=[
-            "Volkzentrierung",
-            "Anti-Elitismus",
-            "Ausschluss von Outgroups",
+            "People-centrism",
+            "Anti-elitism",
+            "Exclusion of outgroups",
         ],
-        x_axis_label="Merkmal B",
-        y_axis_label="Merkmal A",
+        x_axis_label="Feature B",
+        y_axis_label="Feature A",
         filename_stem="figure_ff2_pairwise_matrix",
     )
 
 
 # ============================================================
-# 6. ZEITVERLÄUFE: ABSOLUTE SCORES + AFD-UMFRAGEWERTE
+# 6. TIME SERIES: ABSOLUTE SCORES + AfD POLL VALUES
 # ============================================================
 
 def create_score_and_afd_poll_plot(
@@ -709,7 +709,7 @@ def create_score_and_afd_poll_plot(
     afd_poll_column = "afd_support_t"
 
     required_columns = ["poll_date", "party_clean", outcome, afd_poll_column]
-    check_columns(df, required_columns, "dem Partei–Umfrageintervall-Datensatz")
+    check_columns(df, required_columns, "the party–polling-interval dataset")
 
     plot_df = df[required_columns].copy()
     plot_df["poll_date"] = pd.to_datetime(plot_df["poll_date"], errors="coerce")
@@ -725,7 +725,7 @@ def create_score_and_afd_poll_plot(
     missing_parties = [party for party in PARTY_ORDER if party not in available_parties]
     if missing_parties:
         raise ValueError(
-            f"Für {outcome} fehlen folgende Parteien:\n"
+            f"The following parties are missing for {outcome}:\n"
             + "\n".join(f"- {PARTY_LABELS[party]}" for party in missing_parties)
         )
 
@@ -742,7 +742,7 @@ def create_score_and_afd_poll_plot(
         .sort_values("poll_date")
     )
     if afd_poll_df.empty:
-        raise ValueError("Keine gültigen AfD-Umfragewerte vorhanden.")
+        raise ValueError("No valid AfD poll values available.")
 
     fig, score_ax = plt.subplots(figsize=(8.4, 5.1))
 
@@ -758,7 +758,7 @@ def create_score_and_afd_poll_plot(
             zorder=2,
         )
 
-    score_ax.set_xlabel("Datum der Umfrage", fontsize=12)
+    score_ax.set_xlabel("Poll date", fontsize=12)
     score_ax.set_ylabel(y_label, fontsize=12)
     score_ax.tick_params(axis="both", labelsize=11)
     score_ax.grid(axis="y", linewidth=0.5, color="0.88", zorder=0)
@@ -771,13 +771,13 @@ def create_score_and_afd_poll_plot(
     poll_ax.plot(
     afd_poll_df["poll_date"],
     afd_poll_df[afd_poll_column],
-    label="AfD-Umfragewert",
+    label="AfD poll value",
     color=PARTY_COLORS["afd"],
     linestyle="--",
     linewidth=2.0,
     zorder=4,
 )
-    poll_ax.set_ylabel("AfD-Umfragewert in Prozentpunkten", fontsize=12)
+    poll_ax.set_ylabel("AfD poll value in percentage points", fontsize=12)
     poll_ax.tick_params(axis="y", labelsize=11)
     poll_ax.spines["top"].set_visible(False)
     poll_ax.spines["right"].set_linewidth(0.8)
@@ -805,7 +805,7 @@ def create_score_and_afd_poll_plot(
 def create_gal_tan_and_afd_poll_plot() -> None:
     create_score_and_afd_poll_plot(
         outcome="mean_gal_tan_score",
-        y_label="Mittlerer GAL–TAN-Gesamtscore",
+        y_label="Mean overall GAL–TAN score",
         filename_stem="figure_gal_tan_scores_and_afd_poll_over_time",
     )
 
@@ -813,34 +813,34 @@ def create_gal_tan_and_afd_poll_plot() -> None:
 def create_populism_and_afd_poll_plot() -> None:
     create_score_and_afd_poll_plot(
         outcome="mean_populism_score",
-        y_label="Mittlerer Populismus-Gesamtscore",
+        y_label="Mean overall populism score",
         filename_stem="figure_populism_scores_and_afd_poll_over_time",
     )
 
 
 # ============================================================
-# 7. ALLE GEWÜNSCHTEN ABBILDUNGEN ERSTELLEN
+# 7. CREATE ALL DESIRED FIGURES
 # ============================================================
 
 def main() -> None:
     print("=" * 72)
-    print("Erstellung der ausgewählten APA-7-Abbildungen")
+    print("Creating the selected APA 7 figures")
     print("=" * 72)
 
-    # H1a/H2a: jeweils Distanzwerte links und absolute Werte rechts
+    # H1a/H2a: distance values on the left, absolute values on the right
     create_h1a_interaction_plot()
     create_h2a_interaction_plot()
 
-    # FF1/FF2: jeweils Distanzwerte links und absolute Werte rechts
+    # RQ1/RQ2: distance values on the left, absolute values on the right
     create_ff1_pairwise_matrix()
     create_ff2_pairwise_matrix()
 
-    # Absolute Gesamtscores mit AfD-Umfragewerten
+    # Absolute overall scores with AfD poll values
     create_gal_tan_and_afd_poll_plot()
     create_populism_and_afd_poll_plot()
 
-    print("\nAlle gewünschten Abbildungen wurden erstellt.")
-    print(f"Ausgabeordner: {FIGURE_DIR.resolve()}")
+    print("\nAll desired figures have been created.")
+    print(f"Output folder: {FIGURE_DIR.resolve()}")
 
 
 if __name__ == "__main__":

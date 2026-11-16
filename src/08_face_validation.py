@@ -38,7 +38,7 @@ def check_required_columns(
 
     if missing_columns:
         raise ValueError(
-            f"Folgende erwartete Spalten fehlen in {dataset_name}: "
+            f"The following expected columns are missing in {dataset_name}: "
             + ", ".join(missing_columns)
         )
 
@@ -143,7 +143,7 @@ def main() -> None:
 
     print("\nValidation Results:")
     print(results_df)
-    print(f"\nGespeichert: {OUTPUT_FILE}")
+    print(f"\nSaved: {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":

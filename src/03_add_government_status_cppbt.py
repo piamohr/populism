@@ -25,10 +25,11 @@ def validate_columns(df: pd.DataFrame, required_columns: list[str]) -> None:
     """Check whether all explicitly expected columns are present."""
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
-        raise ValueError(f"Fehlende Spalten in {DATA_PATH}: {missing_columns}")
+        raise ValueError(f"Missing columns in {DATA_PATH}: {missing_columns}")
 
 
 def get_government_status(row: pd.Series) -> int | None:
+    """Return 1 for government parties, 0 for opposition, None if the term is unknown."""
     wahlperiode = row["wahlperiode"]
     party = row["party_clean"]
 
@@ -49,7 +50,7 @@ def main() -> None:
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(OUT_PATH, index=False)
-    print(f"\nGespeichert: {OUT_PATH}")
+    print(f"\nSaved: {OUT_PATH}")
 
 
 if __name__ == "__main__":

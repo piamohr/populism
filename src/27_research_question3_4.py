@@ -1,34 +1,34 @@
 # ============================================================
-# FF3 / FF4: Wechselseitige Beziehung zwischen rhetorischer
-# und positioneller Entwicklung auf aggregierter Mainstream-Ebene
+# RQ3 / RQ4: Reciprocal relationship between rhetorical
+# and positional development at the aggregated mainstream level
 #
-# FF3: Beeinflusst die rhetorische Entwicklung des Mainstreams
-#      die spätere positionelle Entwicklung?
+# RQ3: Does the rhetorical development of the mainstream
+#      influence its later positional development?
 #
-# FF4: Beeinflusst die positionelle Entwicklung des Mainstreams
-#      die spätere rhetorische Entwicklung?
+# RQ4: Does the positional development of the mainstream
+#      influence its later rhetorical development?
 #
-# Analyseebene:
-# - eine aggregierte Mainstream-Beobachtung je Umfrageintervall
+# Level of analysis:
+# - one aggregated mainstream observation per polling interval
 #
-# Es werden zwei Operationalisierungen analysiert:
+# Two operationalizations are analyzed:
 #
-# A) DISTANZMODELLE
+# A) DISTANCE MODELS
 #    - populism_distance_to_afd
 #    - gal_tan_distance_to_afd
 #
-# B) MODELLE MIT ABSOLUTEN MAINSTREAM-WERTEN
+# B) MODELS WITH ABSOLUTE MAINSTREAM VALUES
 #    - mean_populism_score
 #    - mean_gal_tan_score
 #
-# Verfahren:
-# - dynamische lineare Zeitreihenregressionen
-# - Wahlperioden-Fixed-Effects
-# - HAC-/Newey-West-Standardfehler mit maxlags = 1
-# - Kontrolle der verzögerten abhängigen Variable
-# - Kontrolle der verzögerten AfD-Unterstützung
+# Procedure:
+# - dynamic linear time-series regressions
+# - electoral-term fixed effects
+# - HAC/Newey-West standard errors with maxlags = 1
+# - control for the lagged dependent variable
+# - control for lagged AfD support
 #
-# Alle tabellarischen Ausgaben verwenden drei Nachkommastellen.
+# All tabular outputs use three decimal places.
 # ============================================================
 
 from pathlib import Path
@@ -41,7 +41,7 @@ from statsmodels.stats.multitest import multipletests
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 # ============================================================
-# 1. PFADE UND VARIABLEN
+# 1. PATHS AND VARIABLES
 # ============================================================
 
 INPUT_FILE = Path(
@@ -53,33 +53,33 @@ OUTPUT_DIR = Path(
 )
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# Struktur- und Kontrollvariablen
+# Structural and control variables
 INTERVAL_ID = "poll_interval_id"
 TIME_ORDER = "poll_date"
 NEXT_POLL_DATE = "next_poll_date"
 PERIOD = "wahlperiode"
 AFD_SUPPORT = "afd_support_t"
 
-# Distanzwerte zur AfD
+# Distance values to the AfD
 POSITION_DISTANCE = "gal_tan_distance_to_afd"
 RHETORIC_DISTANCE = "populism_distance_to_afd"
 
-# Absolute Werte des aggregierten Mainstreams
+# Absolute values of the aggregated mainstream
 POSITION_ABSOLUTE = "mean_gal_tan_score"
 RHETORIC_ABSOLUTE = "mean_populism_score"
 
-# HAC-/Newey-West-Einstellung
+# HAC/Newey-West setting
 HAC_MAXLAGS = 1
 
 
 # ============================================================
-# 2. HILFSFUNKTIONEN
+# 2. HELPER FUNCTIONS
 # ============================================================
 
 def make_numeric(series: pd.Series) -> pd.Series:
     """
-    Konvertiert numerische Werte robust. Unterstützt auch
-    deutsche Dezimaltrennzeichen und Prozentzeichen.
+    Robustly converts numeric values. Also supports
+    German decimal separators and percent signs.
     """
     if pd.api.types.is_numeric_dtype(series):
         return pd.to_numeric(series, errors="coerce")
@@ -97,7 +97,7 @@ def check_required_columns(
     data: pd.DataFrame,
     required_columns: list[str],
 ) -> None:
-    """Prüft, ob alle für die Analyse benötigten Variablen vorhanden sind."""
+    """Checks whether all variables required for the analysis are present."""
     missing = [
         column for column in required_columns
         if column not in data.columns
@@ -112,9 +112,9 @@ def check_required_columns(
         )
 
         raise KeyError(
-            "\nFolgende benötigte Variablen fehlen:\n"
+            "\nThe following required variables are missing:\n"
             f"{missing_text}\n\n"
-            "Vorhandene Spalten:\n"
+            "Available columns:\n"
             f"{available}"
         )
 
@@ -125,10 +125,10 @@ def create_lag(
     target: str,
 ) -> None:
     """
-    Erstellt einen Lag erster Ordnung.
+    Creates a first-order lag.
 
-    Da der Datensatz genau eine aggregierte Mainstream-Zeitreihe
-    enthält, erfolgt keine Gruppierung nach Partei.
+    Because the dataset contains exactly one aggregated mainstream
+    time series, no grouping by party is applied.
     """
     data[target] = data[source].shift(1)
 
@@ -142,16 +142,16 @@ def fit_time_series_model(
     model_name: str,
 ):
     """
-    Schätzt ein dynamisches Modell auf aggregierter Mainstream-Ebene:
+    Estimates a dynamic model at the aggregated mainstream level:
 
     Y_t = b0
           + b1 * X_(t-1)
           + b2 * Y_(t-1)
-          + b3 * AfD-Unterstützung_(t-1)
-          + Wahlperioden-FE
-          + Fehler_t
+          + b3 * AfD support_(t-1)
+          + electoral-term FE
+          + error_t
 
-    Die Inferenz basiert auf HAC-/Newey-West-Standardfehlern.
+    Inference is based on HAC/Newey-West standard errors.
     """
 
     formula = (
@@ -176,11 +176,11 @@ def fit_time_series_model(
         .copy()
     )
 
-    # Patsy/statsmodels kann den pandas-eigenen nullable Datentyp
-    # Int64Dtype nicht zuverlässig als kategoriale Variable verarbeiten.
-    # Nach dem Entfernen fehlender Werte wird die Wahlperiode deshalb
-    # in gewöhnliche Python-Strings umgewandelt. C(wahlperiode) behandelt
-    # sie anschließend eindeutig als kategoriale Fixed-Effects-Variable.
+    # Patsy/statsmodels cannot reliably process the pandas-native
+    # nullable dtype Int64Dtype as a categorical variable.
+    # After dropping missing values, the electoral term is therefore
+    # converted to ordinary Python strings. C(wahlperiode) then
+    # treats it unambiguously as a categorical fixed-effects variable.
     model_df[PERIOD] = (
         model_df[PERIOD]
         .astype(int)
@@ -189,14 +189,14 @@ def fit_time_series_model(
 
     if model_df.empty:
         raise ValueError(
-            f"{model_name}: Nach Listwise Deletion bleiben "
-            "keine Beobachtungen übrig."
+            f"{model_name}: No observations remain after "
+            "listwise deletion."
         )
 
     if len(model_df) <= len(model_df.columns):
         raise ValueError(
-            f"{model_name}: Es liegen zu wenige vollständige "
-            "Beobachtungen für das Modell vor."
+            f"{model_name}: There are too few complete "
+            "observations for the model."
         )
 
     result = smf.ols(
@@ -217,7 +217,7 @@ def tidy_coefficient_table(
     research_question: str,
     operationalization: str,
 ) -> pd.DataFrame:
-    """Erzeugt eine kompakte Koeffiziententabelle."""
+    """Creates a compact coefficient table."""
     conf = result.conf_int()
 
     table = pd.DataFrame({
@@ -245,7 +245,7 @@ def extract_focal_test(
     effect: str,
     n_obs: int,
 ) -> dict:
-    """Extrahiert den zentralen zeitverzögerten Effekt."""
+    """Extracts the central time-lagged effect."""
     ci_low, ci_high = result.conf_int().loc[focal_term]
 
     return {
@@ -273,7 +273,7 @@ def format_model_report(
     focal_term: str,
     interpretation_type: str,
 ) -> str:
-    """Erstellt einen ausführlichen Bericht für ein einzelnes Modell."""
+    """Creates a detailed report for a single model."""
     b = result.params[focal_term]
     se = result.bse[focal_term]
     t_value = result.tvalues[focal_term]
@@ -284,63 +284,64 @@ def format_model_report(
         "=" * 88,
         title,
         "=" * 88,
-        f"Formel: {formula}",
-        f"N Beobachtungen: {int(result.nobs)}",
-        f"Anzahl Wahlperioden: {model_df[PERIOD].nunique()}",
-        f"HAC-/Newey-West-Standardfehler: maxlags = {HAC_MAXLAGS}",
+        f"Formula: {formula}",
+        f"N observations: {int(result.nobs)}",
+        f"Number of electoral terms: {model_df[PERIOD].nunique()}",
+        f"HAC/Newey-West standard errors: maxlags = {HAC_MAXLAGS}",
         f"R²: {result.rsquared:.3f}",
-        f"Adjustiertes R²: {result.rsquared_adj:.3f}",
+        f"Adjusted R²: {result.rsquared_adj:.3f}",
         "",
-        "Zentraler zeitverzögerter Effekt:",
+        "Central time-lagged effect:",
         (
             f"b = {b:.3f}, SE = {se:.3f}, t = {t_value:.3f}, "
             f"p = {p_value:.3f}, "
-            f"95%-KI [{ci_low:.3f}, {ci_high:.3f}]"
+            f"95% CI [{ci_low:.3f}, {ci_high:.3f}]"
         ),
         "",
     ]
 
     if interpretation_type == "distance":
         lines.extend([
-            "Hinweis zur Interpretation der Distanzmodelle:",
+            "Note on interpreting the distance models:",
             (
-                "- Ein positiver Koeffizient bedeutet, dass größere Distanzen "
-                "in t-1 mit größeren Distanzen in t zusammenhängen. Umgekehrt "
-                "geht damit stärkere Annäherung in t-1 mit stärkerer "
-                "Annäherung in t einher."
+                "- A positive coefficient means that larger distances "
+                "in t-1 are associated with larger distances in t. "
+                "Conversely, stronger convergence in t-1 goes along with "
+                "stronger convergence in t."
             ),
             (
-                "- Ein negativer Koeffizient bedeutet, dass größere Distanzen "
-                "in t-1 mit kleineren Distanzen in t zusammenhängen. Die beiden "
-                "Annäherungsformen entwickeln sich dann gegenläufig."
+                "- A negative coefficient means that larger distances "
+                "in t-1 are associated with smaller distances in t. "
+                "The two forms of convergence then develop in opposite "
+                "directions."
             ),
             "",
         ])
 
     elif interpretation_type == "absolute":
         lines.extend([
-            "Hinweis zur Interpretation der absoluten Werte:",
+            "Note on interpreting the absolute values:",
             (
-                "- Ein positiver Koeffizient bedeutet, dass ein höherer Wert "
-                "der erklärenden Dimension in t-1 mit einem höheren Wert der "
-                "abhängigen Dimension in t zusammenhängt."
+                "- A positive coefficient means that a higher value "
+                "of the explanatory dimension in t-1 is associated with "
+                "a higher value of the dependent dimension in t."
             ),
             (
-                "- Ein negativer Koeffizient bedeutet, dass ein höherer Wert "
-                "der erklärenden Dimension in t-1 mit einem niedrigeren Wert "
-                "der abhängigen Dimension in t zusammenhängt."
+                "- A negative coefficient means that a higher value "
+                "of the explanatory dimension in t-1 is associated with "
+                "a lower value of the dependent dimension in t."
             ),
             (
-                "- Die inhaltliche Richtung des GAL–TAN-Scores richtet sich "
-                "nach der Kodierung des Ausgangsdatensatzes. Vor der "
-                "substanziellen Interpretation ist daher zu prüfen, ob höhere "
-                "Werte den TAN- oder den GAL-Pol kennzeichnen."
+                "- The substantive direction of the GAL–TAN score depends "
+                "on the coding in the original dataset. Before any "
+                "substantive interpretation, it should therefore be checked "
+                "whether higher values denote the TAN or the GAL pole."
             ),
             "",
         ])
 
     lines.extend([
-        "Vollständige Modellzusammenfassung:",
+        "Full model summary:",
         result.summary().as_text(),
         "",
     ])
@@ -349,12 +350,12 @@ def format_model_report(
 
 
 # ============================================================
-# 3. DATEN EINLESEN UND AUFBEREITEN
+# 3. LOAD AND PREPARE DATA
 # ============================================================
 
 if not INPUT_FILE.exists():
     raise FileNotFoundError(
-        "Die Eingabedatei wurde nicht gefunden:\n"
+        "The input file was not found:\n"
         f"{INPUT_FILE.resolve()}"
     )
 
@@ -375,7 +376,7 @@ check_required_columns(
     required_columns=required_columns,
 )
 
-# Numerische Variablen bereinigen
+# Clean numeric variables
 numeric_columns = [
     PERIOD,
     AFD_SUPPORT,
@@ -388,15 +389,15 @@ numeric_columns = [
 for column in numeric_columns:
     df[column] = make_numeric(df[column])
 
-# Wahlperiode zunächst numerisch belassen. Die endgültige Umwandlung
-# in eine gewöhnliche kategoriale Variable erfolgt nach Listwise
-# Deletion innerhalb der Modellfunktion.
+# Keep the electoral term numeric for now. The final conversion
+# into an ordinary categorical variable takes place after listwise
+# deletion inside the model function.
 df[PERIOD] = pd.to_numeric(
     df[PERIOD],
     errors="coerce",
 )
 
-# Datumsvariablen konvertieren
+# Convert date variables
 df[TIME_ORDER] = pd.to_datetime(
     df[TIME_ORDER],
     errors="coerce",
@@ -410,17 +411,17 @@ if NEXT_POLL_DATE in df.columns:
 
 if df[TIME_ORDER].isna().all():
     raise ValueError(
-        f"Die Zeitvariable '{TIME_ORDER}' konnte nicht als Datum "
-        "eingelesen werden."
+        f"The time variable '{TIME_ORDER}' could not be parsed "
+        "as a date."
     )
 
-# Chronologisch sortieren
+# Sort chronologically
 df = (
     df.sort_values(TIME_ORDER)
     .reset_index(drop=True)
 )
 
-# Eindeutigkeit der aggregierten Zeitreihe prüfen
+# Check uniqueness of the aggregated time series
 if df[TIME_ORDER].duplicated().any():
     duplicated_dates = (
         df.loc[df[TIME_ORDER].duplicated(keep=False), TIME_ORDER]
@@ -428,23 +429,23 @@ if df[TIME_ORDER].duplicated().any():
         .tolist()
     )
     raise ValueError(
-        "Die aggregierte Mainstream-Datei enthält mehrere Beobachtungen "
-        "für mindestens ein poll_date. Geprüft werden müssen:\n"
+        "The aggregated mainstream file contains multiple observations "
+        "for at least one poll_date. The following need to be checked:\n"
         + "\n".join(f"  - {date}" for date in duplicated_dates)
     )
 
 # ============================================================
-# 4. ZEITVERZÖGERTE VARIABLEN ERSTELLEN
+# 4. CREATE LAGGED VARIABLES
 # ============================================================
 
-# Gemeinsame Kontrollvariable
+# Shared control variable
 create_lag(
     data=df,
     source=AFD_SUPPORT,
     target="afd_support_lag1",
 )
 
-# Distanzmodelle
+# Distance models
 create_lag(
     data=df,
     source=RHETORIC_DISTANCE,
@@ -456,7 +457,7 @@ create_lag(
     target="position_distance_lag1",
 )
 
-# Modelle mit absoluten Werten
+# Models with absolute values
 create_lag(
     data=df,
     source=RHETORIC_ABSOLUTE,
@@ -468,7 +469,7 @@ create_lag(
     target="position_absolute_lag1",
 )
 
-# Diagnosedatei zur Kontrolle der Lag-Zuordnung
+# Diagnostic file for checking the lag assignment
 diagnostic_columns = [
     INTERVAL_ID,
     TIME_ORDER,
@@ -499,75 +500,75 @@ df[diagnostic_columns].to_csv(
 
 
 # ============================================================
-# 5. MODELLDEFINITIONEN
+# 5. MODEL DEFINITIONS
 # ============================================================
 
 model_specs = [
     {
-        "model_name": "FF3_Distanz",
-        "research_question": "FF3",
-        "operationalization": "Distanz zur AfD",
+        "model_name": "RQ3_Distance",
+        "research_question": "RQ3",
+        "operationalization": "Distance to the AfD",
         "outcome": POSITION_DISTANCE,
         "predictor_lag": "rhetoric_distance_lag1",
         "outcome_lag": "position_distance_lag1",
         "effect": (
-            "rhetorische Distanz zur AfD t-1 "
-            "-> positionelle Distanz zur AfD t"
+            "rhetorical distance to the AfD t-1 "
+            "-> positional distance to the AfD t"
         ),
         "title": (
-            "FF3 – Distanzmodell: Einfluss der vorherigen rhetorischen "
-            "Distanz auf die nachfolgende positionelle Distanz"
+            "RQ3 – Distance model: Effect of the previous rhetorical "
+            "distance on the subsequent positional distance"
         ),
         "interpretation_type": "distance",
     },
     {
-        "model_name": "FF4_Distanz",
-        "research_question": "FF4",
-        "operationalization": "Distanz zur AfD",
+        "model_name": "RQ4_Distance",
+        "research_question": "RQ4",
+        "operationalization": "Distance to the AfD",
         "outcome": RHETORIC_DISTANCE,
         "predictor_lag": "position_distance_lag1",
         "outcome_lag": "rhetoric_distance_lag1",
         "effect": (
-            "positionelle Distanz zur AfD t-1 "
-            "-> rhetorische Distanz zur AfD t"
+            "positional distance to the AfD t-1 "
+            "-> rhetorical distance to the AfD t"
         ),
         "title": (
-            "FF4 – Distanzmodell: Einfluss der vorherigen positionellen "
-            "Distanz auf die nachfolgende rhetorische Distanz"
+            "RQ4 – Distance model: Effect of the previous positional "
+            "distance on the subsequent rhetorical distance"
         ),
         "interpretation_type": "distance",
     },
     {
-        "model_name": "FF3_Absolut",
-        "research_question": "FF3",
-        "operationalization": "Absolute Mainstream-Werte",
+        "model_name": "RQ3_Absolute",
+        "research_question": "RQ3",
+        "operationalization": "Absolute mainstream values",
         "outcome": POSITION_ABSOLUTE,
         "predictor_lag": "rhetoric_absolute_lag1",
         "outcome_lag": "position_absolute_lag1",
         "effect": (
-            "absoluter Populismuswert t-1 "
-            "-> absoluter GAL–TAN-Wert t"
+            "absolute populism score t-1 "
+            "-> absolute GAL–TAN score t"
         ),
         "title": (
-            "FF3 – Absolutmodell: Einfluss des vorherigen absoluten "
-            "Populismuswerts auf den nachfolgenden absoluten GAL–TAN-Wert"
+            "RQ3 – Absolute model: Effect of the previous absolute "
+            "populism score on the subsequent absolute GAL–TAN score"
         ),
         "interpretation_type": "absolute",
     },
     {
-        "model_name": "FF4_Absolut",
-        "research_question": "FF4",
-        "operationalization": "Absolute Mainstream-Werte",
+        "model_name": "RQ4_Absolute",
+        "research_question": "RQ4",
+        "operationalization": "Absolute mainstream values",
         "outcome": RHETORIC_ABSOLUTE,
         "predictor_lag": "position_absolute_lag1",
         "outcome_lag": "rhetoric_absolute_lag1",
         "effect": (
-            "absoluter GAL–TAN-Wert t-1 "
-            "-> absoluter Populismuswert t"
+            "absolute GAL–TAN score t-1 "
+            "-> absolute populism score t"
         ),
         "title": (
-            "FF4 – Absolutmodell: Einfluss des vorherigen absoluten "
-            "GAL–TAN-Werts auf den nachfolgenden absoluten Populismuswert"
+            "RQ4 – Absolute model: Effect of the previous absolute "
+            "GAL–TAN score on the subsequent absolute populism score"
         ),
         "interpretation_type": "absolute",
     },
@@ -575,7 +576,7 @@ model_specs = [
 
 
 # ============================================================
-# 6. MODELLE SCHÄTZEN
+# 6. ESTIMATE MODELS
 # ============================================================
 
 model_results = {}
@@ -634,13 +635,13 @@ for spec in model_specs:
 
 
 # ============================================================
-# 7. HOLM-KORREKTUREN
+# 7. HOLM CORRECTIONS
 # ============================================================
 
 focal_tests_df = pd.DataFrame(focal_tests)
 
-# Holm-Korrektur getrennt innerhalb jeder Operationalisierung:
-# jeweils FF3 und FF4 zusammen.
+# Holm correction separately within each operationalization:
+# RQ3 and RQ4 together in each case.
 focal_tests_df["p_Holm_family"] = pd.NA
 focal_tests_df["significant_Holm_family_005"] = False
 
@@ -666,7 +667,7 @@ focal_tests_df["p_Holm_family"] = pd.to_numeric(
     errors="coerce",
 )
 
-# Zusätzliche konservative Holm-Korrektur über alle vier Tests
+# Additional conservative Holm correction across all four tests
 reject_all, corrected_all, _, _ = multipletests(
     focal_tests_df["p_raw"].astype(float),
     alpha=0.05,
@@ -678,7 +679,7 @@ focal_tests_df["significant_Holm_all_005"] = reject_all
 
 
 # ============================================================
-# 8. ERGEBNISSE SPEICHERN
+# 8. SAVE RESULTS
 # ============================================================
 
 all_coefficients = pd.concat(
@@ -698,13 +699,13 @@ focal_tests_df.to_csv(
     float_format="%.3f",
 )
 
-# Zusätzliche getrennte Tabellen
+# Additional separate tables
 distance_focal = focal_tests_df[
-    focal_tests_df["operationalization"] == "Distanz zur AfD"
+    focal_tests_df["operationalization"] == "Distance to the AfD"
 ].copy()
 
 absolute_focal = focal_tests_df[
-    focal_tests_df["operationalization"] == "Absolute Mainstream-Werte"
+    focal_tests_df["operationalization"] == "Absolute mainstream values"
 ].copy()
 
 distance_focal.to_csv(
@@ -719,7 +720,7 @@ absolute_focal.to_csv(
     float_format="%.3f",
 )
 
-# Vollständiger Textbericht
+# Full text report
 with open(
     OUTPUT_DIR / "rq3_rq4_model_report.txt",
     "w",
@@ -731,7 +732,7 @@ with open(
 
     file.write("\n")
     file.write("=" * 88 + "\n")
-    file.write("HOLM-KORRIGIERTE ZENTRALE TESTS\n")
+    file.write("HOLM-CORRECTED CENTRAL TESTS\n")
     file.write("=" * 88 + "\n")
     file.write(
         focal_tests_df.to_string(
@@ -742,37 +743,37 @@ with open(
     file.write("\n\n")
 
     file.write(
-        "Erläuterung der Korrekturvariablen:\n"
-        "- p_Holm_family korrigiert FF3 und FF4 getrennt innerhalb "
-        "der Distanz- beziehungsweise Absolutmodelle.\n"
-        "- p_Holm_all korrigiert konservativ über alle vier zentralen "
-        "Tests gemeinsam.\n"
+        "Explanation of the correction variables:\n"
+        "- p_Holm_family corrects RQ3 and RQ4 separately within "
+        "the distance and absolute models, respectively.\n"
+        "- p_Holm_all corrects conservatively across all four central "
+        "tests jointly.\n"
     )
 
 
 # ============================================================
-# 9. KONSOLENAUSGABE
+# 9. CONSOLE OUTPUT
 # ============================================================
 
 print("\n" + "=" * 88)
-print("FF3 / FF4: KREUZVERZÖGERTE MODELLE AUF MAINSTREAM-EBENE")
+print("RQ3 / RQ4: CROSS-LAGGED MODELS AT THE MAINSTREAM LEVEL")
 print("=" * 88)
-print(f"Eingabedatei: {INPUT_FILE}")
-print(f"Zeilen im Ausgangsdatensatz: {len(df)}")
-print(f"Zeitvariable: {TIME_ORDER}")
-print(f"Wahlperioden-FE: {PERIOD}")
-print(f"AfD-Kontrollvariable: {AFD_SUPPORT} (verzögert)")
-print(f"HAC-/Newey-West maxlags: {HAC_MAXLAGS}")
+print(f"Input file: {INPUT_FILE}")
+print(f"Rows in the original dataset: {len(df)}")
+print(f"Time variable: {TIME_ORDER}")
+print(f"Electoral-term FE: {PERIOD}")
+print(f"AfD control variable: {AFD_SUPPORT} (lagged)")
+print(f"HAC/Newey-West maxlags: {HAC_MAXLAGS}")
 
-print("\nVerwendete Distanzvariablen:")
-print(f"- Rhetorik: {RHETORIC_DISTANCE}")
+print("\nDistance variables used:")
+print(f"- Rhetoric: {RHETORIC_DISTANCE}")
 print(f"- Position: {POSITION_DISTANCE}")
 
-print("\nVerwendete absolute Variablen:")
-print(f"- Rhetorik: {RHETORIC_ABSOLUTE}")
+print("\nAbsolute variables used:")
+print(f"- Rhetoric: {RHETORIC_ABSOLUTE}")
 print(f"- Position: {POSITION_ABSOLUTE}")
 
-print("\nZentrale Ergebnisse:")
+print("\nCentral results:")
 print(
     focal_tests_df.to_string(
         index=False,
@@ -780,6 +781,6 @@ print(
     )
 )
 
-print("\nGespeicherte Dateien:")
+print("\nSaved files:")
 for output_path in sorted(OUTPUT_DIR.glob("*")):
     print(f"- {output_path}")

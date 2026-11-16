@@ -1,46 +1,46 @@
 # ============================================================
-# FF2: MERKMALE POPULISTISCHER KOMMUNIKATION
-# AUF PARTEI-INTERVALL-EBENE
+# RQ2: FEATURES OF POPULIST COMMUNICATION
+# AT THE PARTY-INTERVAL LEVEL
 #
-# Forschungsfrage:
-# Unterscheiden sich die Merkmale populistischer Kommunikation
-# hinsichtlich ihres Zusammenhangs mit der Unterstützung der AfD?
+# Research question:
+# Do the features of populist communication differ
+# in their association with support for the AfD?
 #
-# Die Forschungsfrage wird mit zwei komplementären
-# Operationalisierungen untersucht:
+# The research question is examined with two complementary
+# operationalizations:
 #
-# MODELLGRUPPE A: Distanz zur AfD
-#   AVs: merkmalsspezifische Populismus-Distanzen zur AfD
-#
-#   Interpretation:
-#   Ein negativer Koeffizient bedeutet, dass die Distanz zur AfD
-#   mit steigender AfD-Unterstützung abnimmt.
-#
-# MODELLGRUPPE B: Absolute Merkmalswerte
-#   AVs: absolute Mittelwerte der Populismusmerkmale
+# MODEL GROUP A: Distance to the AfD
+#   DVs: feature-specific populism distances to the AfD
 #
 #   Interpretation:
-#   Ein positiver Koeffizient bedeutet, dass das jeweilige Merkmal
-#   populistischer Kommunikation mit steigender AfD-Unterstützung
-#   stärker ausgeprägt ist.
+#   A negative coefficient means that the distance to the AfD
+#   decreases as AfD support rises.
 #
-# Untersuchte Merkmale:
-#   P1_people    = Volkzentrierung
-#   P2_anti_elite = Anti-Elitismus
-#   P3_outgroup   = Ausschluss von Outgroups
+# MODEL GROUP B: Absolute feature values
+#   DVs: absolute means of the populism features
 #
-# Vorgehen für beide Operationalisierungen:
-# 1. Separates Fixed-Effects-Modell je Merkmal
-# 2. Paarweise Differenzmodelle zum Vergleich der Koeffizienten
-# 3. Partei-Fixed-Effects
-# 4. Wahlperioden-Fixed-Effects
-# 5. Clusterrobuste Standardfehler auf Parteiebene
-# 6. Wild-Cluster-Bootstrap WCR11 und WCR31
-# 7. Holm-Korrektur der merkmalsbezogenen und paarweisen Tests
+#   Interpretation:
+#   A positive coefficient means that the respective feature
+#   of populist communication is more pronounced as AfD support
+#   rises.
 #
-# Modelle ohne Wahlperioden-Fixed-Effects werden nicht geschätzt.
-# Alle Ergebniswerte werden mit drei Nachkommastellen
-# ausgegeben und gespeichert.
+# Features examined:
+#   P1_people    = People-centrism
+#   P2_anti_elite = Anti-elitism
+#   P3_outgroup   = Exclusion of outgroups
+#
+# Procedure for both operationalizations:
+# 1. Separate fixed-effects model per feature
+# 2. Pairwise difference models to compare the coefficients
+# 3. Party fixed effects
+# 4. Electoral-term fixed effects
+# 5. Cluster-robust standard errors at the party level
+# 6. Wild cluster bootstrap WCR11 and WCR31
+# 7. Holm correction of the feature-specific and pairwise tests
+#
+# Models without electoral-term fixed effects are not estimated.
+# All result values are printed and saved
+# with three decimal places.
 # ============================================================
 
 from itertools import combinations
@@ -54,7 +54,7 @@ from wildboottest.wildboottest import wildboottest
 
 
 # ============================================================
-# 1. EINSTELLUNGEN
+# 1. SETTINGS
 # ============================================================
 
 INPUT_FILE = Path(
@@ -80,27 +80,27 @@ ALPHA = 0.05
 DECIMALS = 3
 
 # True:
-# Innerhalb jeder Operationalisierung verwenden alle drei
-# Merkmalsmodelle dieselben vollständigen Partei-Intervalle.
+# Within each operationalization, all three feature models
+# use the same complete party intervals.
 #
 # False:
-# Jedes Merkmal verwendet seine maximal verfügbare Stichprobe.
+# Each feature uses its maximum available sample.
 USE_COMMON_COMPLETE_CASE_SAMPLE = True
 
 FEATURE_LABELS = {
-    "P1_people": "Volkzentrierung",
-    "P2_anti_elite": "Anti-Elitismus",
-    "P3_outgroup": "Ausschluss von Outgroups",
+    "P1_people": "People-centrism",
+    "P2_anti_elite": "Anti-elitism",
+    "P3_outgroup": "Exclusion of outgroups",
 }
 
-# Distanzvariablen zur AfD.
+# Distance variables to the AfD.
 DISTANCE_FEATURES = {
     "P1_people": "P1_people_distance_to_afd",
     "P2_anti_elite": "P2_anti_elite_distance_to_afd",
     "P3_outgroup": "P3_outgroup_distance_to_afd",
 }
 
-# Absolute, auf Partei-Intervall-Ebene aggregierte Merkmalswerte.
+# Absolute feature values aggregated at the party-interval level.
 ABSOLUTE_FEATURES = {
     "P1_people": "mean_P1_people",
     "P2_anti_elite": "mean_P2_anti_elite",
@@ -109,11 +109,11 @@ ABSOLUTE_FEATURES = {
 
 
 # ============================================================
-# 2. HILFSFUNKTIONEN
+# 2. HELPER FUNCTIONS
 # ============================================================
 
 def mainstream_mask(series: pd.Series) -> pd.Series:
-    """Erzeugt einen robusten Filter für die Mainstream-Variable."""
+    """Creates a robust filter for the mainstream variable."""
     if pd.api.types.is_bool_dtype(series):
         return series.fillna(False)
 
@@ -134,7 +134,7 @@ def save_result_dataframe(
     dataframe: pd.DataFrame,
     output_file: Path,
 ) -> None:
-    """Speichert numerische Werte mit drei Nachkommastellen."""
+    """Saves numeric values with three decimal places."""
     dataframe.to_csv(
         output_file,
         index=False,
@@ -147,12 +147,12 @@ def extract_parameter(
     robust_result,
     parameter_name: str,
 ) -> dict:
-    """Extrahiert die Kennwerte des interessierenden Parameters."""
+    """Extracts the statistics of the parameter of interest."""
     parameter_names = ols_result.model.exog_names
 
     if parameter_name not in parameter_names:
         raise ValueError(
-            f"Parameter '{parameter_name}' wurde nicht gefunden."
+            f"Parameter '{parameter_name}' was not found."
         )
 
     parameter_index = parameter_names.index(
@@ -190,8 +190,8 @@ def fit_cluster_model(
     data: pd.DataFrame,
 ):
     """
-    Schätzt ein OLS-Modell mit Partei- und Wahlperioden-FE
-    sowie clusterrobusten Standardfehlern.
+    Estimates an OLS model with party and electoral-term FE
+    and cluster-robust standard errors.
     """
     model = smf.ols(
         formula=formula,
@@ -207,8 +207,8 @@ def fit_cluster_model(
 
     if len(cluster_array) != int(ols_result.nobs):
         raise ValueError(
-            "Die Zahl der Clusterkennungen stimmt nicht mit "
-            "der Zahl der Modellbeobachtungen überein."
+            "The number of cluster identifiers does not match "
+            "the number of model observations."
         )
 
     robust_result = (
@@ -233,7 +233,7 @@ def extract_bootstrap_p_value(
     bootstrap_result,
     parameter_name: str,
 ) -> float:
-    """Extrahiert den p-Wert aus wildboottest."""
+    """Extracts the p-value from wildboottest."""
     if not isinstance(
         bootstrap_result,
         pd.DataFrame,
@@ -265,8 +265,8 @@ def run_wild_cluster_bootstrap(
     bootstrap_type: str,
 ) -> float:
     """
-    Führt einen Wild-Cluster-Bootstrap aus und gibt den
-    extrahierten p-Wert zurück.
+    Runs a wild cluster bootstrap and returns the
+    extracted p-value.
     """
     try:
         result = wildboottest(
@@ -287,8 +287,8 @@ def run_wild_cluster_bootstrap(
 
     except Exception as error:
         print(
-            f"Bootstrap {bootstrap_type} für "
-            f"'{parameter_name}' fehlgeschlagen: "
+            f"Bootstrap {bootstrap_type} for "
+            f"'{parameter_name}' failed: "
             f"{type(error).__name__}: {error}"
         )
         return np.nan
@@ -297,7 +297,7 @@ def run_wild_cluster_bootstrap(
 def holm_adjustment(
     p_values: pd.Series,
 ) -> pd.Series:
-    """Berechnet Holm-korrigierte p-Werte."""
+    """Computes Holm-adjusted p-values."""
     valid = p_values.dropna()
     sorted_indices = valid.sort_values().index
     n_tests = len(valid)
@@ -336,7 +336,7 @@ def prepare_base_data(
     data: pd.DataFrame,
     all_outcomes: list[str],
 ) -> pd.DataFrame:
-    """Filtert Mainstream-Parteien und bereitet Variablen auf."""
+    """Filters mainstream parties and prepares variables."""
     required_columns = [
         AFD_SUPPORT,
         PARTY,
@@ -353,7 +353,7 @@ def prepare_base_data(
 
     if missing_columns:
         raise ValueError(
-            "Folgende Variablen fehlen:\n"
+            "The following variables are missing:\n"
             + "\n".join(
                 f"- {column}"
                 for column in missing_columns
@@ -410,7 +410,7 @@ def create_descriptives(
     features: dict,
     operationalization: str,
 ) -> pd.DataFrame:
-    """Erstellt deskriptive Statistiken je Populismusmerkmal."""
+    """Creates descriptive statistics for each populism feature."""
     rows = []
 
     for feature_key, outcome in features.items():
@@ -448,7 +448,7 @@ def run_feature_models(
     operationalization: str,
     expected_direction: str,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Schätzt ein Modell für jedes Populismusmerkmal."""
+    """Estimates a model for each populism feature."""
     model_rows = []
     bootstrap_rows = []
 
@@ -630,8 +630,8 @@ def run_pairwise_models(
     operationalization: str,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Vergleicht die AfD-Koeffizienten der Populismusmerkmale
-    über paarweise Differenzmodelle.
+    Compares the AfD coefficients of the populism features
+    using pairwise difference models.
     """
     pairwise_rows = []
     bootstrap_rows = []
@@ -837,7 +837,7 @@ def run_operationalization(
     features: dict,
     expected_direction: str,
 ) -> dict:
-    """Führt alle FF2-Analysen für eine Operationalisierung aus."""
+    """Runs all RQ2 analyses for one operationalization."""
     if USE_COMMON_COMPLETE_CASE_SAMPLE:
         analysis_df = base_df.dropna(
             subset=list(features.values())
@@ -847,7 +847,7 @@ def run_operationalization(
 
     if analysis_df.empty:
         raise ValueError(
-            f"Die Stichprobe für '{operationalization}' ist leer."
+            f"The sample for '{operationalization}' is empty."
         )
 
     afd_support_mean = analysis_df[
@@ -861,24 +861,24 @@ def run_operationalization(
 
     print("\n\n" + "#" * 78)
     print(
-        f"FF2: {operationalization.upper()}"
+        f"RQ2: {operationalization.upper()}"
     )
     print("#" * 78)
 
     print(
-        f"Partei-Intervalle: "
+        f"Party intervals: "
         f"{len(analysis_df)}"
     )
     print(
-        f"Parteien/Cluster: "
+        f"Parties/clusters: "
         f"{analysis_df[PARTY].nunique()}"
     )
     print(
-        f"Wahlperioden: "
+        f"Electoral terms: "
         f"{analysis_df[PERIOD].nunique()}"
     )
     print(
-        f"Mittelwert AfD-Unterstützung: "
+        f"Mean AfD support: "
         f"{afd_support_mean:.3f}"
     )
 
@@ -888,7 +888,7 @@ def run_operationalization(
         operationalization=operationalization,
     )
 
-    print("\nDeskriptive Statistiken:")
+    print("\nDescriptive statistics:")
     print(
         descriptives[
             [
@@ -915,7 +915,7 @@ def run_operationalization(
         expected_direction=expected_direction,
     )
 
-    print("\nMerkmalsspezifische Modelle:")
+    print("\nFeature-specific models:")
     print(
         feature_results[
             [
@@ -945,7 +945,7 @@ def run_operationalization(
         operationalization=operationalization,
     )
 
-    print("\nPaarweise Vergleiche:")
+    print("\nPairwise comparisons:")
     print(
         pairwise_results[
             [
@@ -1027,12 +1027,12 @@ def run_operationalization(
 
 
 # ============================================================
-# 3. DATEN EINLESEN UND SPALTEN PRÜFEN
+# 3. LOAD DATA AND CHECK COLUMNS
 # ============================================================
 
 if not INPUT_FILE.exists():
     raise FileNotFoundError(
-        f"Datei nicht gefunden:\n"
+        f"File not found:\n"
         f"{INPUT_FILE.resolve()}"
     )
 
@@ -1043,13 +1043,13 @@ df = pd.read_csv(
 absolute_features = ABSOLUTE_FEATURES
 
 print("=" * 78)
-print("FF2: Merkmale populistischer Kommunikation")
+print("RQ2: Features of populist communication")
 print("=" * 78)
-print(f"Datei: {INPUT_FILE}")
-print(f"Zeilen im Gesamtdatensatz: {len(df)}")
-print(f"Spalten im Gesamtdatensatz: {len(df.columns)}")
+print(f"File: {INPUT_FILE}")
+print(f"Rows in the full dataset: {len(df)}")
+print(f"Columns in the full dataset: {len(df.columns)}")
 
-print("\nVerwendete absolute Merkmalsvariablen:")
+print("\nAbsolute feature variables used:")
 for feature, column in absolute_features.items():
     print(
         f"- {FEATURE_LABELS[feature]}: "
@@ -1072,7 +1072,7 @@ base_df = prepare_base_data(
 
 
 # ============================================================
-# 4. BEIDE OPERATIONALISIERUNGEN SCHÄTZEN
+# 4. ESTIMATE BOTH OPERATIONALIZATIONS
 # ============================================================
 
 distance_results = run_operationalization(
@@ -1091,7 +1091,7 @@ absolute_results = run_operationalization(
 
 
 # ============================================================
-# 5. GEMEINSAME ERGEBNISTABELLEN
+# 5. COMBINED RESULT TABLES
 # ============================================================
 
 combined_descriptives = pd.concat(
@@ -1182,14 +1182,14 @@ save_result_dataframe(
 
 
 # ============================================================
-# 6. ABSCHLUSSAUSGABE
+# 6. FINAL OUTPUT
 # ============================================================
 
 print("\n\n" + "=" * 78)
-print("FF2: ALLE ANALYSEN ABGESCHLOSSEN")
+print("RQ2: ALL ANALYSES COMPLETED")
 print("=" * 78)
 
-print("\nMerkmalsmodelle im Vergleich:")
+print("\nFeature models compared:")
 print(
     combined_feature_results[
         [
@@ -1209,14 +1209,13 @@ print(
 )
 
 print(
-    "\nHinweis zur Interpretation:\n"
-    "- Bei den Distanzmodellen bedeutet ein negativer "
-    "Koeffizient eine abnehmende Distanz zur AfD.\n"
-    "- Bei den absoluten Modellen bedeutet ein positiver "
-    "Koeffizient eine stärkere Ausprägung des jeweiligen "
-    "Populismusmerkmals.\n"
-    "- Die paarweisen Differenzmodelle testen, ob sich die "
-    "AfD-Koeffizienten zweier Merkmale unterscheiden.\n"
-    "- Alle Modelle enthalten Partei- und "
-    "Wahlperioden-Fixed-Effects."
+    "\nNote on interpretation:\n"
+    "- In the distance models, a negative coefficient means a "
+    "decreasing distance to the AfD.\n"
+    "- In the absolute models, a positive coefficient means a "
+    "stronger expression of the respective populism feature.\n"
+    "- The pairwise difference models test whether the AfD "
+    "coefficients of two features differ.\n"
+    "- All models include party and electoral-term fixed "
+    "effects."
 )

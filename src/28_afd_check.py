@@ -1,27 +1,27 @@
 # ============================================================
-# ERGÄNZENDE ANALYSE:
-# BEWEGT SICH DIE AFD BEI STEIGENDER UNTERSTÜTZUNG
-# STÄRKER IN RICHTUNG TAN UND KOMMUNIZIERT SIE POPULISTISCHER?
+# SUPPLEMENTARY ANALYSIS:
+# DOES THE AfD MOVE MORE STRONGLY TOWARD TAN AND COMMUNICATE
+# IN A MORE POPULIST WAY AS SUPPORT RISES?
 #
-# Analyseeinheit:
-# AfD × Umfrageintervall
+# Unit of analysis:
+# AfD × polling interval
 #
-# MODELL A:
-# Absolute GAL-TAN-Position der AfD
+# MODEL A:
+# Absolute GAL-TAN position of the AfD
 #
-# MODELL B:
-# Absoluter Populismus der AfD
+# MODEL B:
+# Absolute populism of the AfD
 #
-# Für beide Modelle:
-#   - Wahlperioden-Fixed-Effects
-#   - Newey-West-/HAC-Standardfehler
-#   - HAC-Hauptmodell mit Lag 4
-#   - Sensitivitätsanalyse mit mehreren Lag-Längen
-#   - Vorhersagewerte und Abbildungen
+# For both models:
+#   - Electoral-term fixed effects
+#   - Newey-West/HAC standard errors
+#   - HAC main model with lag 4
+#   - Sensitivity analysis with several lag lengths
+#   - Predicted values and figures
 #
-# Es werden keine Modelle ohne Wahlperioden-FE geschätzt.
-# Alle numerischen Ergebnisse werden mit drei
-# Nachkommastellen ausgegeben und gespeichert.
+# No models without electoral-term FE are estimated.
+# All numeric results are printed and saved
+# with three decimal places.
 # ============================================================
 
 from pathlib import Path
@@ -33,7 +33,7 @@ import statsmodels.formula.api as smf
 
 
 # ============================================================
-# 1. EINSTELLUNGEN
+# 1. SETTINGS
 # ============================================================
 
 INPUT_FILE = Path(
@@ -66,30 +66,30 @@ OUTCOMES = {
 
 MODEL_SPECS = {
     "gal_tan": {
-        "label": "Absolute GAL-TAN-Position der AfD",
+        "label": "Absolute GAL-TAN position of the AfD",
         "expected_sign": 1,
         "output_prefix": "afd_gal_tan",
         "prediction_column": "predicted_gal_tan",
-        "ylabel": "Vorhergesagte absolute GAL–TAN-Position der AfD",
+        "ylabel": "Predicted absolute GAL–TAN position of the AfD",
         "title": (
-            "AfD-Unterstützung und absolute GAL–TAN-Position der AfD"
+            "AfD support and absolute GAL–TAN position of the AfD"
         ),
     },
     "populism": {
-        "label": "Absoluter Populismus der AfD",
+        "label": "Absolute populism of the AfD",
         "expected_sign": 1,
         "output_prefix": "afd_populism",
         "prediction_column": "predicted_populism",
-        "ylabel": "Vorhergesagter absoluter Populismus der AfD",
+        "ylabel": "Predicted absolute populism of the AfD",
         "title": (
-            "AfD-Unterstützung und populistische Kommunikation der AfD"
+            "AfD support and populist communication of the AfD"
         ),
     },
 }
 
 
 # ============================================================
-# 2. HILFSFUNKTIONEN
+# 2. HELPER FUNCTIONS
 # ============================================================
 
 def save_dataframe(
@@ -123,7 +123,7 @@ def prepare_afd_sample(
 
     if missing:
         raise ValueError(
-            "Folgende Variablen fehlen:\n"
+            "The following variables are missing:\n"
             + "\n".join(
                 f"- {column}"
                 for column in missing
@@ -154,7 +154,7 @@ def prepare_afd_sample(
 
     if sample.empty:
         raise ValueError(
-            "Die AfD-Analysestichprobe ist leer."
+            "The AfD analysis sample is empty."
         )
 
     sample[PERIOD] = (
@@ -170,10 +170,10 @@ def prepare_afd_sample(
 
     if sample["_time_order"].isna().any():
         raise ValueError(
-            f"Die Zeitvariable '{TIME_ORDER}' enthält nicht interpretierbare Werte."
+            f"The time variable '{TIME_ORDER}' contains values that cannot be parsed."
         )
 
-    # Entfernt doppelt vorkommende AfD-Werte desselben Intervalls.
+    # Removes duplicate AfD values from the same interval.
     dedupe_columns = [
         "_time_order",
         PERIOD,
@@ -317,7 +317,7 @@ def make_plot(
     )
 
     plt.xlabel(
-        "AfD-Unterstützung in Prozentpunkten"
+        "AfD support in percentage points"
     )
     plt.ylabel(ylabel)
     plt.title(title)
@@ -346,22 +346,22 @@ def run_model(
 
     print("\n\n" + "#" * 72)
     print(
-        f"STARTE MODELL: {label.upper()}"
+        f"STARTING MODEL: {label.upper()}"
     )
     print("#" * 72)
 
     print(
-        f"Analyseeinheiten: {len(sample)}"
+        f"Analysis units: {len(sample)}"
     )
     print(
-        f"Wahlperioden: {sample[PERIOD].nunique()}"
+        f"Electoral terms: {sample[PERIOD].nunique()}"
     )
     print(
-        f"Mittelwert AfD-Unterstützung: "
+        f"Mean AfD support: "
         f"{sample[AFD_SUPPORT].mean():.3f}"
     )
 
-    print("\nModellspezifikation:")
+    print("\nModel specification:")
     print(formula.strip())
 
     primary_result = fit_hac_model(
@@ -383,34 +383,34 @@ def run_model(
 
     print("\n" + "=" * 72)
     print(
-        f"HAC-Hauptmodell – {label}"
+        f"HAC main model – {label}"
     )
     print("=" * 72)
 
     print(
-        f"Koeffizient:  "
+        f"Coefficient:  "
         f"{primary_stats['coefficient']:.3f}"
     )
     print(
-        f"HAC-SE:       "
+        f"HAC SE:       "
         f"{primary_stats['hac_se']:.3f}"
     )
     print(
-        f"t-Wert:       "
+        f"t-value:      "
         f"{primary_stats['t_value']:.3f}"
     )
     print(
-        f"p-Wert:       "
+        f"p-value:      "
         f"{primary_stats['p_value']:.3f}"
     )
     print(
-        f"95%-KI:       "
+        f"95% CI:       "
         f"[{primary_stats['ci_95_low']:.3f}, "
         f"{primary_stats['ci_95_high']:.3f}]"
     )
     print(
-        f"Erwartung bestätigt: "
-        f"{'Ja' if supported else 'Nein'}"
+        f"Expectation confirmed: "
+        f"{'Yes' if supported else 'No'}"
     )
 
     primary_output = pd.DataFrame(
@@ -477,7 +477,7 @@ def run_model(
         sensitivity_rows
     )
 
-    print("\nHAC-Sensitivitätsanalyse:")
+    print("\nHAC sensitivity analysis:")
     print(
         sensitivity[
             [
@@ -540,12 +540,12 @@ def run_model(
 
 
 # ============================================================
-# 3. DATEN EINLESEN
+# 3. LOAD DATA
 # ============================================================
 
 if not INPUT_FILE.exists():
     raise FileNotFoundError(
-        f"Datei nicht gefunden:\n"
+        f"File not found:\n"
         f"{INPUT_FILE.resolve()}"
     )
 
@@ -562,24 +562,24 @@ afd_sample, time_variable = prepare_afd_sample(
 
 print("=" * 72)
 print(
-    "ERGÄNZENDE AFD-ANALYSE"
+    "SUPPLEMENTARY AfD ANALYSIS"
 )
 print("=" * 72)
 print(
-    f"Datei: {INPUT_FILE}"
+    f"File: {INPUT_FILE}"
 )
 print(
-    f"Zeilen im Gesamtdatensatz: {len(df)}"
+    f"Rows in the full dataset: {len(df)}"
 )
 print(
-    f"AfD-Intervalle nach Deduplizierung: "
+    f"AfD intervals after deduplication: "
     f"{len(afd_sample)}"
 )
 print(
-    f"Zeitvariable: {time_variable}"
+    f"Time variable: {time_variable}"
 )
 
-print("\nVerwendete Outcomes:")
+print("\nOutcomes used:")
 for key, outcome in outcomes.items():
     print(
         f"- {MODEL_SPECS[key]['label']}: "
@@ -595,7 +595,7 @@ afd_sample.to_csv(
 
 
 # ============================================================
-# 4. MODELLE SCHÄTZEN
+# 4. ESTIMATE MODELS
 # ============================================================
 
 primary_results = []
@@ -618,7 +618,7 @@ for model_key, spec in MODEL_SPECS.items():
 
 
 # ============================================================
-# 5. GEMEINSAME ERGEBNISTABELLEN
+# 5. COMBINED RESULT TABLES
 # ============================================================
 
 combined_primary = pd.concat(
@@ -645,14 +645,14 @@ save_dataframe(
 
 
 # ============================================================
-# 6. ABSCHLUSSAUSGABE
+# 6. FINAL OUTPUT
 # ============================================================
 
 print("\n\n" + "=" * 72)
-print("ALLE AFD-ANALYSEN ABGESCHLOSSEN")
+print("ALL AfD ANALYSES COMPLETED")
 print("=" * 72)
 
-print("\nHAC-Hauptmodelle im Vergleich:")
+print("\nHAC main models compared:")
 print(
     combined_primary[
         [
@@ -673,14 +673,14 @@ print(
 )
 
 print(
-    "\nHinweise zur Interpretation:\n"
-    "- Ein positiver Koeffizient im GAL-TAN-Modell bedeutet, "
-    "dass die AfD bei höherer Unterstützung stärker in Richtung "
-    "des TAN-Pols positioniert ist.\n"
-    "- Ein positiver Koeffizient im Populismusmodell bedeutet, "
-    "dass die AfD bei höherer Unterstützung populistischer "
-    "kommuniziert.\n"
-    "- Die Modelle prüfen statistische Zusammenhänge und "
-    "erlauben keine eindeutigen kausalen Aussagen.\n"
-    "- Alle Modelle enthalten Wahlperioden-Fixed-Effects."
+    "\nNotes on interpretation:\n"
+    "- A positive coefficient in the GAL-TAN model means "
+    "that the AfD is positioned more strongly toward "
+    "the TAN pole when support is higher.\n"
+    "- A positive coefficient in the populism model means "
+    "that the AfD communicates in a more populist way when "
+    "support is higher.\n"
+    "- The models test statistical associations and "
+    "do not allow unambiguous causal statements.\n"
+    "- All models include electoral-term fixed effects."
 )

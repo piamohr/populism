@@ -1,102 +1,93 @@
-# Masterarbeit: Die zwei Gesichter des populistischen Zeitgeistes: Welchen Einfluss hat der AfD-Erfolg auf den deutschen Parteienwettbewerb?
+# Following, Not Catching Up? Joint Measurement of Positional and Rhetorical Accommodation to a Right-Wing Populist Party Using a Single LLM Pipeline
 
-Dieses Repository enthält die Python-Skripte und zentrale Datendateien für eine quantitative Analyse von Bundestagsreden. Untersucht wird, ob und wie sich Mainstream-Parteien rhetorisch und positionell an die AfD annähern. Die Analyse kombiniert LLM-basierte Inhaltscodierung, Umfragedaten, Aggregationen auf Umfrageintervall-Ebene sowie Regressionsmodelle zu den Hypothesen und Forschungsfragen der Masterarbeit.
+This repository contains the Python scripts and key data files for a quantitative analysis of speeches in the German Bundestag. It examines whether and how mainstream parties move closer to the AfD, both rhetorically and in their positions. The analysis combines LLM-based content coding, survey data, aggregation at the polling-interval level, and regression models for the hypotheses and research questions of the thesis.
 
-## Forschungsinteresse
+## Research Interest
 
-Ziel des Projekts ist es, den Einfluss des Erfolgs der AfD auf die Kommunikation und Themenpositionierung von Mainstream-Parteien zu untersuchen. Im Mittelpunkt stehen zwei Formen der Annäherung:
+The project aims to examine the influence of the AfD's success on the communication and issue positioning of mainstream parties. It focuses on two forms of convergence:
 
-1. **Positionelle Annäherung**: Veränderungen der Distanz von Mainstream-Parteien zur AfD auf der GAL-TAN-Dimension.
-2. **Rhetorische Annäherung**: Veränderungen populistischer Kommunikation von Mainstream-Parteien.
+1. **Positional convergence**: Changes in the distance between mainstream parties and the AfD on the GAL-TAN dimension.
+2. **Rhetorical convergence**: Changes in the populist communication of mainstream parties.
 
-Die zentralen Hypothesen prüfen, ob höhere AfD-Unterstützung mit geringeren positionellen Distanzen und höherer populistischer Kommunikation der Mainstream-Parteien zusammenhängt. Ergänzend werden Moderationseffekte durch ideologische Nähe, Stimmenverluste und Regierungs-/Oppositionsstatus sowie Unterschiede zwischen Subdimensionen untersucht.
+The central hypotheses test whether higher support for the AfD is associated with smaller positional distances and with more populist communication by mainstream parties. In addition, the analysis examines moderation effects of ideological proximity, vote losses, and government/opposition status, as well as differences between subdimensions.
 
-Das folgende Forschungsmodell fasst die untersuchten Zusammenhänge und Moderationseffekte zusammen:
+The following research model summarizes the relationships and moderation effects under investigation:
 
-![Forschungsmodell der Masterarbeit](docs/forschungsmodell.png)
+![Research model of the thesis](docs/research_model.png)
 
-## Datenbasis
+## Data
 
-Die Bundestagsreden stammen aus dem **Corpus der Plenarprotokolle des Deutschen Bundestages (CPP-BT)** von Sean Fobbe. Verwendet wird die speech-level Parquet-Datei:
-
+The Bundestag speeches come from the **Corpus of Plenary Protocols of the German Bundestag (CPP-BT)** by Sean Fobbe. The speech-level Parquet file is used:
 ```text
 CPP-BT_2026-01-17_DE_PQT_Reden_Gesamt.parquet
 ```
 
-Diese Datei ist wegen ihrer Größe **nicht im Repository enthalten**. Für eine vollständige Reproduktion der Datenaufbereitung muss sie separat heruntergeladen und lokal unter folgendem Pfad abgelegt werden:
-
+Because of its size, this file is **not included in the repository**. To fully reproduce the data preparation, it must be downloaded separately and placed locally at the following path:
 ```text
 data/raw/CPP-BT_2026-01-17_DE_PQT_Reden_Gesamt.parquet
 ```
 
-Die verwendete Reden-Variante enthält Einzelreden und Metadaten wie `rede_id`, `rede_text`, `wahlperiode`, `sitzung_datum`, `redner_fraktion`, `redner_rolle_kurz` und `redner_rolle_lang`.
+The speech variant used contains individual speeches and metadata such as `rede_id`, `rede_text`, `wahlperiode`, `sitzung_datum`, `redner_fraktion`, `redner_rolle_kurz`, and `redner_rolle_lang`.
 
-Zusätzlich werden Umfragedaten von Infratest dimap sowie manuelle Validierungsdaten verwendet. Diese kleineren Rohdatendateien werden im Repository mitgeführt:
-
+In addition, polling data from Infratest dimap and manual validation data are used. These smaller raw data files are included in the repository:
 ```text
 data/raw/infratest_dimap.xlsx
 data/raw/manual_validation.csv
 data/raw/manual_validation.xlsx
 ```
 
-## Projektstruktur
-
+## Project Structure
 ```text
 .
-├── src/                              # Python-Skripte der Analysepipeline
+├── src/                              # Python scripts of the analysis pipeline
 ├── data/
-│   ├── raw/                          # kleinere Rohdaten auf GitHub; große CPP-BT-Parquet-Datei lokal
-│   ├── interim/                      # optionale Zwischendaten, nicht auf GitHub
+│   ├── raw/                          # smaller raw data on GitHub; large CPP-BT Parquet file kept locally
+│   ├── interim/                      # optional intermediate data, not on GitHub
 │   └── processed/
-│       └── final_analysis/           # finale Analysedatensätze, auf GitHub
-├── results/                          # Modelloutputs, Tabellen und Abbildungen, auf GitHub
-├── outputs/                          # Hilfsoutputs, nicht auf GitHub
-├── requirements.txt                  # Laufzeit-Abhängigkeiten
-├── requirements-dev.txt              # optionale Entwicklungs-Abhängigkeiten
+│       └── final_analysis/           # final analysis datasets, on GitHub
+├── results/                          # model outputs, tables, and figures, on GitHub
+├── outputs/                          # auxiliary outputs, not on GitHub
+├── requirements.txt                  # runtime dependencies
+├── requirements-dev.txt              # optional development dependencies
 ├── .gitignore
 └── README.md
 ```
 
 ## Installation
 
-Empfohlen wird eine virtuelle Umgebung.
-
+A virtual environment is recommended.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Unter Windows:
-
+On Windows:
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Für die Arbeit mit Jupyter oder Formatierungswerkzeugen können zusätzlich die Entwicklungsabhängigkeiten installiert werden:
-
+For working with Jupyter or formatting tools, you can additionally install the development dependencies:
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-## API-Key für LLM-Codierung
+## API Key for LLM Coding
 
-Für die LLM-Codierung wird ein OpenAI-API-Key benötigt. Dieser wird **nicht** ins Repository aufgenommen, sondern lokal in einer `.env`-Datei gespeichert:
-
+LLM coding requires an OpenAI API key. It is **not** committed to the repository. Store it locally in a `.env` file instead:
 ```text
-OPENAI_API_KEY=dein_api_key
+OPENAI_API_KEY=your_api_key
 ```
 
-Die Datei `.env` ist in `.gitignore` ausgeschlossen. Eine `.env.example` ist im Repository hinterlegt.
+The `.env` file is excluded via `.gitignore`. A `.env.example` is included in the repository.
 
-Wichtig: Die LLM-Codierungsskripte sollten nur erneut ausgeführt werden, wenn eine erneute Codierung wirklich beabsichtigt ist. Für Replikationen der nachgelagerten Analysen können die bereits erzeugten LLM-Scores bzw. finalen Analysedatensätze verwendet werden.
+Important: Only re-run the LLM coding scripts if re-coding is truly intended. To replicate the downstream analyses, you can use the LLM scores that have already been generated, or the final analysis datasets.
 
-## Pipeline und Skriptreihenfolge
+## Pipeline and Script Order
 
-### 1. Datenaufbereitung CPP-BT
-
+### 1. CPP-BT Data Preparation
 ```text
 01_load_cppbt.py
 02_clean_cppbt.py
@@ -105,8 +96,7 @@ Wichtig: Die LLM-Codierungsskripte sollten nur erneut ausgeführt werden, wenn e
 05_print_speeches.py
 ```
 
-### 2. Validierung der LLM-Codierung
-
+### 2. Validation of the LLM Coding
 ```text
 06_validation_sample.py
 07_validation_llm_coding.py
@@ -114,30 +104,27 @@ Wichtig: Die LLM-Codierungsskripte sollten nur erneut ausgeführt werden, wenn e
 09_reliability_validation.py
 ```
 
-`07_validation_llm_coding.py` enthält die LLM-basierte Codierung des Validierungssamples. Prompt, JSON-Schema, Modellparameter und Parsing-Logik sollten nicht verändert werden, wenn Vergleichbarkeit mit den bestehenden Ergebnissen erhalten bleiben soll.
+`07_validation_llm_coding.py` contains the LLM-based coding of the validation sample. The prompt, JSON schema, model parameters, and parsing logic should not be changed if comparability with the existing results is to be preserved.
 
-### 3. Finale LLM-Codierung und Score-Bildung
-
+### 3. Final LLM Coding and Score Construction
 ```text
 10_final_llm_coding.py
 11_scores.py
 12_merging.py
 ```
 
-`10_final_llm_coding.py` codiert die finale Redestichprobe. `11_scores.py` berechnet Populismus- und GAL-TAN-Scores. `12_merging.py` verknüpft die ursprünglichen Rededaten mit den LLM-Scores.
+`10_final_llm_coding.py` codes the final speech sample. `11_scores.py` computes populism and GAL-TAN scores. `12_merging.py` merges the original speech data with the LLM scores.
 
-### 4. Umfrageintervalle und deskriptive Statistiken
-
+### 4. Polling Intervals and Descriptive Statistics
 ```text
 13_polling_intervals.py
 14_deskriptive_statistiken.py
 ```
 
-Diese Skripte ordnen Reden Umfrageintervallen zu, aggregieren Daten auf Partei- und Mainstream-Ebene und erzeugen deskriptive Statistiken.
-Hinweis: Die Datei `data/processed/final_analysis/02_speech_level_with_polling.csv` ist aufgrund der GitHub-Dateigrößenbeschränkung nicht im Repository enthalten. Sie ist eine generierte Zwischen-/Analysedatei und kann durch Ausführen der Preprocessing- und Merging-Pipeline reproduziert werden. Die kleineren aggregierten finalen Analysedatensätze in `data/processed/final_analysis/` sind im Repository enthalten.
+These scripts assign speeches to polling intervals, aggregate the data at the party and mainstream levels, and produce descriptive statistics.
+Note: The file `data/processed/final_analysis/02_speech_level_with_polling.csv` is not included in the repository because of GitHub's file size limit. It is a generated intermediate/analysis file and can be reproduced by running the preprocessing and merging pipeline. The smaller aggregated final analysis datasets in `data/processed/final_analysis/` are included in the repository.
 
-### 5. H1 bis H1c: positionelle Annäherung
-
+### 5. H1 to H1c: Positional Convergence
 ```text
 15_hypothesis1.py
 16_hypothesis1_mainstream.py
@@ -146,18 +133,16 @@ Hinweis: Die Datei `data/processed/final_analysis/02_speech_level_with_polling.c
 19_hypothesis1c.py
 ```
 
-Diese Skripte prüfen den Zusammenhang zwischen AfD-Unterstützung und positioneller Annäherung auf der GAL-TAN-Dimension. Enthalten sind Modelle auf Partei-Intervall-Ebene sowie aggregierter Mainstream-Ebene und Moderationsanalysen.
+These scripts test the relationship between AfD support and positional convergence on the GAL-TAN dimension. They include models at the party-interval level and at the aggregated mainstream level, as well as moderation analyses.
 
-### 6. FF1
-
+### 6. RQ1
 ```text
 20_research_question1.py
 ```
 
-FF1 untersucht, ob sich GAL-TAN-Subdimensionen hinsichtlich ihres Zusammenhangs mit der AfD-Unterstützung unterscheiden.
+RQ1 examines whether the GAL-TAN subdimensions differ in their relationship with AfD support.
 
-### 7. H2 bis H2c: rhetorische Annäherung
-
+### 7. H2 to H2c: Rhetorical Convergence
 ```text
 21_hypothesis2.py
 22_hypothesis2_mainstream.py
@@ -166,66 +151,62 @@ FF1 untersucht, ob sich GAL-TAN-Subdimensionen hinsichtlich ihres Zusammenhangs 
 25_hypothesis2c.py
 ```
 
-Diese Skripte prüfen den Zusammenhang zwischen AfD-Unterstützung und populistischer Kommunikation der Mainstream-Parteien.
+These scripts test the relationship between AfD support and the populist communication of mainstream parties.
 
-### 8. FF2
-
+### 8. RQ2
 ```text
 26_research_question2.py
 ```
-FF2 untersucht, ob sich Populismus-Subdimensionen hinsichtlich ihres Zusammenhangs mit der AfD-Unterstützung unterscheiden.
 
-### 9. FF3/FF4, AfD-Zusatzanalyse und finale Abbildungen
+RQ2 examines whether the populism subdimensions differ in their relationship with AfD support.
 
+### 9. RQ3/RQ4, Additional AfD Analysis, and Final Figures
 ```text
 27_research_question3_4.py
 28_afd_check.py
 29_figures.py
 ```
 
-FF3/FF4 analysieren das Verhältnis rhetorischer und inhaltlicher Annäherung. `28_afd_check.py` prüft ergänzend, ob sich auch die AfD selbst über die Zeit bzw. mit zunehmender Unterstützung verändert. `29_figures.py` erzeugt finale Abbildungen.
+RQ3/RQ4 analyze the relationship between rhetorical and positional convergence. `28_afd_check.py` additionally checks whether the AfD itself changes over time or with increasing support. `29_figures.py` produces the final figures.
 
-## Zentrale finale Analysedatensätze
+## Key Final Analysis Datasets
 
-Die wichtigsten finalen Datensätze liegen in:
-
+The most important final datasets are located in:
 ```text
 data/processed/final_analysis/
 ```
 
-Besonders relevant sind:
-
+Particularly relevant are:
 ```text
-02_speech_level_with_polling.csv
+03_party_polling_interval.csv
+04_mainstream_polling_interval.csv
 05_party_polling_interval_distances.csv
 06_mainstream_polling_interval_distances.csv
 ```
 
-Diese Dateien werden bewusst auf GitHub versioniert, da sie die Grundlage der finalen Analysen bilden.
+These files are deliberately version-controlled on GitHub because they form the basis of the final analyses.
 
-## Ergebnisse
+## Results
 
-Die Ergebnisdateien liegen in:
-
+The result files are located in:
 ```text
 results/
 ```
 
-Auch dieser Ordner wird bewusst auf GitHub versioniert. Er enthält Modelloutputs, Tabellen und Abbildungen zu den Hypothesen und Forschungsfragen.
+This folder is also deliberately version-controlled on GitHub. It contains model outputs, tables, and figures for the hypotheses and research questions.
 
-## Hinweise zur Reproduktion
+## Notes on Reproduction
 
-Für eine vollständige Reproduktion der gesamten Pipeline muss die große CPP-BT-Parquet-Datei lokal ergänzt werden:
-
+To fully reproduce the entire pipeline, the large CPP-BT Parquet file must be added locally:
 ```text
 data/raw/CPP-BT_2026-01-17_DE_PQT_Reden_Gesamt.parquet
 ```
 
-Die kleineren Rohdatendateien `infratest_dimap.xlsx`, `manual_validation.csv` und `manual_validation.xlsx` werden im Repository mitgeführt. Die LLM-Skripte können API-Kosten verursachen und durch Modellversionen oder API-Verhalten beeinflusst werden. Für die Reproduktion der statistischen Analysen empfiehlt es sich daher, die versionierten finalen Analysedatensätze und Ergebnisdateien zu verwenden, sofern keine erneute Codierung geplant ist.
+The smaller raw data files `infratest_dimap.xlsx`, `manual_validation.csv`, and `manual_validation.xlsx` are included in the repository. The LLM scripts can incur API costs and may be affected by model versions or API behavior. To reproduce the statistical analyses, it is therefore advisable to use the version-controlled final analysis datasets and result files, unless re-coding is planned.
 
-## GitHub-Hinweise
+## GitHub Notes
 
-Dieses Repository ist so angelegt, dass sensible Dateien, lokale Umgebungen, Hilfsoutputs und große Rohdaten ausgeschlossen bleiben, während kleinere Rohdaten, finale Analysedatensätze und Ergebnisse versioniert werden:
+This repository is set up so that sensitive files, local environments, auxiliary outputs, and large raw data are excluded, while smaller raw data, final analysis datasets, and results are version-controlled:
 
-- `.env`, `.venv/`, `data/interim/`, sonstige `data/processed/`-Dateien, `outputs/` und große Parquet-Dateien in `data/raw/` werden ignoriert.
-- `data/raw/infratest_dimap.xlsx`, `data/raw/manual_validation.csv`, `data/raw/manual_validation.xlsx`, `data/processed/final_analysis/` und `results/` können auf GitHub hochgeladen werden.
+- `.env`, `.venv/`, `data/interim/`, other `data/processed/` files, `outputs/`, and large Parquet files in `data/raw/` are ignored.
+- `data/raw/infratest_dimap.xlsx`, `data/raw/manual_validation.csv`, `data/raw/manual_validation.xlsx`, `data/processed/final_analysis/`, and `results/` can be uploaded to GitHub.

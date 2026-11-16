@@ -1,17 +1,17 @@
 # ============================================================
-# H2c: MODERATION DER RHETORISCHEN ANNÄHERUNG
-# DURCH DEN OPPOSITIONSSTATUS
+# H2c: MODERATION OF RHETORICAL CONVERGENCE
+# BY OPPOSITION STATUS
 #
-# is_opposition: 0 = Regierung, 1 = Opposition
+# is_opposition: 0 = government, 1 = opposition
 #
-# MODELL A: populism_distance_to_afd
-# Erwartung: afd_support_c × is_opposition < 0
+# MODEL A: populism_distance_to_afd
+# Expectation: afd_support_c × is_opposition < 0
 #
-# MODELL B: mean_populism_score
-# Erwartung: afd_support_c × is_opposition > 0.
+# MODEL B: mean_populism_score
+# Expectation: afd_support_c × is_opposition > 0.
 #
-# Beide Modelle enthalten Partei- und Wahlperioden-FE.
-# Alle Ergebniswerte werden mit drei Nachkommastellen ausgegeben.
+# Both models include party and electoral-term FE.
+# All result values are printed with three decimal places.
 # ============================================================
 
 from pathlib import Path
@@ -45,22 +45,22 @@ DECIMALS = 3
 
 MODEL_SPECS = {
     "distance": {
-        "label": "Rhetorische Distanz zur AfD",
+        "label": "Rhetorical distance to the AfD",
         "outcome": "populism_distance_to_afd",
         "expected_direction": "negative",
         "expected_sign": -1,
         "prefix": "h2c_distance",
         "prediction": "predicted_distance",
-        "ylabel": "Vorhergesagte rhetorische Distanz zur AfD",
+        "ylabel": "Predicted rhetorical distance to the AfD",
     },
     "absolute": {
-        "label": "Absoluter Populismus",
+        "label": "Absolute populism",
         "outcome": "mean_populism_score",
         "expected_direction": "positive",
         "expected_sign": 1,
         "prefix": "h2c_absolute_populism",
         "prediction": "predicted_populism",
-        "ylabel": "Vorhergesagter absoluter Populismus",
+        "ylabel": "Predicted absolute populism",
     },
 }
 
@@ -113,7 +113,7 @@ def prepare_sample(data: pd.DataFrame, outcome: str) -> pd.DataFrame:
 
     if missing:
         raise ValueError(
-            "Folgende Variablen fehlen:\n"
+            "The following variables are missing:\n"
             + "\n".join(f"- {column}" for column in missing)
         )
 
@@ -131,7 +131,7 @@ def prepare_sample(data: pd.DataFrame, outcome: str) -> pd.DataFrame:
     if invalid.any():
         values = sorted(sample.loc[invalid, OPPOSITION].unique())
         raise ValueError(
-            "is_opposition enthält andere Werte als 0 und 1: "
+            "is_opposition contains values other than 0 and 1: "
             f"{values}"
         )
 
@@ -150,7 +150,7 @@ def prepare_sample(data: pd.DataFrame, outcome: str) -> pd.DataFrame:
 def parameter_stats(ols_result, robust_result, parameter: str) -> dict:
     names = ols_result.model.exog_names
     if parameter not in names:
-        raise ValueError(f"Parameter '{parameter}' wurde nicht gefunden.")
+        raise ValueError(f"Parameter '{parameter}' was not found.")
 
     index = names.index(parameter)
     ci = robust_result.conf_int()[index]
@@ -185,7 +185,7 @@ def run_bootstrap(model, clusters, bootstrap_type: str, output: Path, label: str
         save_bootstrap(result, output)
         return result
     except Exception as error:
-        print(f"Bootstrap fehlgeschlagen: {type(error).__name__}: {error}")
+        print(f"Bootstrap failed: {type(error).__name__}: {error}")
         pd.DataFrame(
             {
                 "error_type": [type(error).__name__],
@@ -201,7 +201,7 @@ def simple_slopes(ols_result, robust_result) -> pd.DataFrame:
     interaction_index = names.index(INTERACTION)
     rows = []
 
-    for label, opposition_value in {"Regierung": 0, "Opposition": 1}.items():
+    for label, opposition_value in {"Government": 0, "Opposition": 1}.items():
         restriction = np.zeros(len(names))
         restriction[afd_index] = 1
         restriction[interaction_index] = opposition_value
@@ -245,7 +245,7 @@ def predictions(
     reference_period = sample[PERIOD].cat.categories[0]
     frames = []
 
-    for label, opposition_value in {"Regierung": 0, "Opposition": 1}.items():
+    for label, opposition_value in {"Government": 0, "Opposition": 1}.items():
         prediction_data = pd.DataFrame(
             {
                 AFD_SUPPORT: afd_grid,
@@ -291,7 +291,7 @@ def make_plot(
             label=label,
         )
 
-    plt.xlabel("AfD-Unterstützung in Prozentpunkten")
+    plt.xlabel("AfD support in percentage points")
     plt.ylabel(ylabel)
     plt.title(title)
     plt.legend()
@@ -321,29 +321,29 @@ def run_model(data: pd.DataFrame, model_key: str, spec: dict) -> dict:
     clusters = sample["cluster_id"].to_numpy(dtype=np.int64)
 
     print("\n\n" + "#" * 72)
-    print(f"STARTE H2c-MODELL: {label.upper()}")
+    print(f"STARTING H2c MODEL: {label.upper()}")
     print("#" * 72)
-    print(f"Analyseeinheiten: {len(sample)}")
-    print(f"Parteien/Cluster: {sample[PARTY].nunique()}")
-    print(f"Wahlperioden: {sample[PERIOD].nunique()}")
+    print(f"Analysis units: {len(sample)}")
+    print(f"Parties/clusters: {sample[PARTY].nunique()}")
+    print(f"Electoral terms: {sample[PERIOD].nunique()}")
 
-    print("\nBeobachtungen nach Status:")
+    print("\nObservations by status:")
     print(
         sample[OPPOSITION]
         .value_counts()
         .sort_index()
-        .rename(index={0: "Regierung", 1: "Opposition"})
+        .rename(index={0: "Government", 1: "Opposition"})
     )
 
-    print("\nStatus nach Partei:")
+    print("\nStatus by party:")
     print(
         pd.crosstab(sample[PARTY], sample[OPPOSITION]).rename(
-            columns={0: "Regierung", 1: "Opposition"}
+            columns={0: "Government", 1: "Opposition"}
         )
     )
 
-    print("\nMittelwert für die Zentrierung:")
-    print(f"AfD-Unterstützung: {afd_support_mean:.3f}")
+    print("\nMean used for centering:")
+    print(f"AfD support: {afd_support_mean:.3f}")
 
     formula = f"""
         {outcome}
@@ -376,20 +376,20 @@ def run_model(data: pd.DataFrame, model_key: str, spec: dict) -> dict:
         and stats["p_value"] < ALPHA
     )
 
-    print("\nModellspezifikation:")
+    print("\nModel specification:")
     print(formula.strip())
     print("\n" + "=" * 72)
-    print(f"H2c: Interaktionsmodell – {label}")
+    print(f"H2c: Interaction model – {label}")
     print("=" * 72)
-    print(f"Interaktionskoeffizient: {stats['coefficient']:.3f}")
-    print(f"Clusterrobuster SE:      {stats['cluster_robust_se']:.3f}")
-    print(f"t-Wert:                  {stats['t_value']:.3f}")
-    print(f"p-Wert:                  {stats['p_value']:.3f}")
+    print(f"Interaction coefficient: {stats['coefficient']:.3f}")
+    print(f"Cluster-robust SE:       {stats['cluster_robust_se']:.3f}")
+    print(f"t-value:                 {stats['t_value']:.3f}")
+    print(f"p-value:                 {stats['p_value']:.3f}")
     print(
-        "95%-KI:                  "
+        "95% CI:                  "
         f"[{stats['ci_95_low']:.3f}, {stats['ci_95_high']:.3f}]"
     )
-    print(f"H2c unterstützt:         {'Ja' if supported else 'Nein'}")
+    print(f"H2c supported:           {'Yes' if supported else 'No'}")
 
     run_bootstrap(
         model,
@@ -408,7 +408,7 @@ def run_model(data: pd.DataFrame, model_key: str, spec: dict) -> dict:
 
     slopes = simple_slopes(ols_result, robust_result)
     print("\n" + "=" * 72)
-    print(f"Simple Slopes – {label}")
+    print(f"Simple slopes – {label}")
     print("=" * 72)
     print(slopes.round(DECIMALS).to_string(index=False))
 
@@ -423,7 +423,7 @@ def run_model(data: pd.DataFrame, model_key: str, spec: dict) -> dict:
         prediction_data,
         spec["prediction"],
         spec["ylabel"],
-        f"H2c: Oppositionsstatus – {label}",
+        f"H2c: Opposition status – {label}",
         outputs["figure"],
     )
 
@@ -435,23 +435,23 @@ def run_model(data: pd.DataFrame, model_key: str, spec: dict) -> dict:
 
     if direction_ok and significant:
         interpretation = (
-            f"{label}: Der Interaktionseffekt weist in die erwartete "
-            "Richtung und ist statistisch signifikant."
+            f"{label}: The interaction effect points in the expected "
+            "direction and is statistically significant."
         )
     elif direction_ok:
         interpretation = (
-            f"{label}: Der Interaktionseffekt weist in die erwartete "
-            "Richtung, ist aber nicht statistisch signifikant."
+            f"{label}: The interaction effect points in the expected "
+            "direction but is not statistically significant."
         )
     elif significant:
         interpretation = (
-            f"{label}: Der Interaktionseffekt ist statistisch "
-            "signifikant, weist aber in die entgegengesetzte Richtung."
+            f"{label}: The interaction effect is statistically "
+            "significant but points in the opposite direction."
         )
     else:
         interpretation = (
-            f"{label}: Der Interaktionseffekt weist nicht in die "
-            "erwartete Richtung und ist nicht statistisch signifikant."
+            f"{label}: The interaction effect does not point in the "
+            "expected direction and is not statistically significant."
         )
 
     print("\nInterpretation:")
@@ -491,7 +491,7 @@ def run_model(data: pd.DataFrame, model_key: str, spec: dict) -> dict:
         float_format="%.3f",
     )
 
-    print("\nGespeicherte Dateien:")
+    print("\nSaved files:")
     for output in outputs.values():
         print(f"- {output}")
 
@@ -507,17 +507,17 @@ def run_model(data: pd.DataFrame, model_key: str, spec: dict) -> dict:
 
 if not INPUT_FILE.exists():
     raise FileNotFoundError(
-        f"Datei nicht gefunden:\n{INPUT_FILE.resolve()}"
+        f"File not found:\n{INPUT_FILE.resolve()}"
     )
 
 df = pd.read_csv(INPUT_FILE)
 
 print("=" * 72)
-print("H2c: Moderation der rhetorischen Annäherung durch den Oppositionsstatus")
+print("H2c: Moderation of rhetorical convergence by opposition status")
 print("=" * 72)
-print(f"Datei: {INPUT_FILE}")
-print(f"Zeilen im Gesamtdatensatz: {len(df)}")
-print(f"Spalten im Gesamtdatensatz: {len(df.columns)}")
+print(f"File: {INPUT_FILE}")
+print(f"Rows in the full dataset: {len(df)}")
+print(f"Columns in the full dataset: {len(df.columns)}")
 
 main_results = []
 slope_results = []
@@ -537,9 +537,9 @@ save_df(combined_main, OUTPUT_COMBINED_MODELS)
 save_df(combined_slopes, OUTPUT_COMBINED_SLOPES)
 
 print("\n\n" + "=" * 72)
-print("H2c: ALLE ANALYSEN ABGESCHLOSSEN")
+print("H2c: ALL ANALYSES COMPLETED")
 print("=" * 72)
-print("\nInteraktionsmodelle im Vergleich:")
+print("\nInteraction models compared:")
 print(
     combined_main[
         [
@@ -561,17 +561,17 @@ print(
     .to_string(index=False)
 )
 
-print("\nGemeinsame Ergebnisdateien:")
-print(f"- Interaktionsmodelle: {OUTPUT_COMBINED_MODELS}")
-print(f"- Simple Slopes:       {OUTPUT_COMBINED_SLOPES}")
+print("\nCombined result files:")
+print(f"- Interaction models: {OUTPUT_COMBINED_MODELS}")
+print(f"- Simple slopes:      {OUTPUT_COMBINED_SLOPES}")
 
 print(
-    "\nHinweis zur Interpretation:\n"
-    "- Beim Distanzmodell unterstützt ein negativer "
-    "Interaktionskoeffizient H2c.\n"
-    "- Beim Modell der absoluten Populismus-Position unterstützt "
-    "ein positiver Interaktionskoeffizient H2c, sofern höhere "
-    "Werte den TAN-Pol abbilden.\n"
-    "- is_opposition = 0 bezeichnet Regierungsparteien und "
-    "is_opposition = 1 Oppositionsparteien."
+    "\nNote on interpretation:\n"
+    "- In the distance model, a negative interaction "
+    "coefficient supports H2c.\n"
+    "- In the absolute populism position model, a positive "
+    "interaction coefficient supports H2c, provided that higher "
+    "values represent stronger populist communication.\n"
+    "- is_opposition = 0 denotes government parties and "
+    "is_opposition = 1 denotes opposition parties."
 )

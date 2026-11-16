@@ -1,31 +1,31 @@
 # =====================================================
-# H2: RHETORISCHE ANNÄHERUNG UND ABSOLUTER POPULISMUS
+# H2: RHETORICAL CONVERGENCE AND ABSOLUTE POPULISM
 #
-# Dieses Skript prüft H2 auf zwei Arten:
+# This script tests H2 in two ways:
 #
-# MODELL A: Rhetorische Annäherung an die AfD
-#   AV: populism_distance_to_afd
-#   Erwartung: negativer Koeffizient
+# MODEL A: Rhetorical convergence toward the AfD
+#   DV: populism_distance_to_afd
+#   Expectation: negative coefficient
 #   Interpretation:
-#   Mit steigender AfD-Unterstützung wird die absolute
-#   Populismus-Distanz zwischen Mainstream-Partei und AfD kleiner.
+#   As AfD support rises, the absolute populism distance
+#   between a mainstream party and the AfD becomes smaller.
 #
-# MODELL B: Absoluter Populismus der Mainstream-Parteien
-#   AV: mean_populism_score
-#   Erwartung: positiver Koeffizient
+# MODEL B: Absolute populism of the mainstream parties
+#   DV: mean_populism_score
+#   Expectation: positive coefficient
 #   Interpretation:
-#   Mit steigender AfD-Unterstützung kommunizieren
-#   Mainstream-Parteien populistischer.
+#   As AfD support rises, mainstream parties
+#   communicate in a more populist way.
 #
-# Für beide Modelle:
-#   - Partei-Fixed-Effects
-#   - Wahlperioden-Fixed-Effects
-#   - Clusterrobuste Standardfehler auf Parteiebene
-#   - Small-Sample-Korrektur
-#   - Wild-Cluster-Bootstrap WCR11 und WCR31
+# For both models:
+#   - Party fixed effects
+#   - Electoral-term fixed effects
+#   - Cluster-robust standard errors at the party level
+#   - Small-sample correction
+#   - Wild cluster bootstrap WCR11 and WCR31
 #
-# Alle Ergebniswerte werden mit drei Nachkommastellen
-# ausgegeben und gespeichert.
+# All result values are printed and saved
+# with three decimal places.
 # =====================================================
 
 from pathlib import Path
@@ -38,7 +38,7 @@ from wildboottest.wildboottest import wildboottest
 
 
 # =====================================================
-# 1. EINSTELLUNGEN
+# 1. SETTINGS
 # =====================================================
 
 INPUT_FILE = Path(
@@ -57,10 +57,10 @@ BOOTSTRAP_REPLICATIONS = 9999
 SEED = 12345
 DECIMALS = 3
 
-# Beide H2-Operationalisierungen.
+# Both H2 operationalizations.
 MODEL_SPECS = {
     "distance": {
-        "label": "Rhetorische Annäherung",
+        "label": "Rhetorical convergence",
         "outcome": "populism_distance_to_afd",
         "expected_direction": "negative",
         "expected_sign": -1,
@@ -75,7 +75,7 @@ MODEL_SPECS = {
         ],
     },
     "absolute": {
-        "label": "Absoluter Populismus",
+        "label": "Absolute populism",
         "outcome": "mean_populism_score",
         "expected_direction": "positive",
         "expected_sign": 1,
@@ -93,13 +93,13 @@ MODEL_SPECS = {
 
 
 # =====================================================
-# 2. HILFSFUNKTIONEN
+# 2. HELPER FUNCTIONS
 # =====================================================
 
 def is_true_like(series):
     """
-    Wandelt verschiedene mögliche Darstellungen einer booleschen
-    Variable in eine boolesche Maske um.
+    Converts various possible representations of a boolean
+    variable into a boolean mask.
     """
     if pd.api.types.is_bool_dtype(series):
         return series.fillna(False)
@@ -115,7 +115,7 @@ def is_true_like(series):
 
 def save_bootstrap_result(result, output_path):
     """
-    Speichert das Ergebnis von wildboottest als CSV.
+    Saves the wildboottest result as a CSV file.
     """
     if isinstance(result, pd.DataFrame):
         result.reset_index().to_csv(
@@ -131,7 +131,7 @@ def save_bootstrap_result(result, output_path):
 
 def save_bootstrap_error(error, output_path):
     """
-    Speichert Fehlertyp und Fehlermeldung eines Bootstrap-Laufs.
+    Saves the error type and error message of a bootstrap run.
     """
     pd.DataFrame(
         {
@@ -147,15 +147,15 @@ def extract_cluster_result(
     parameter,
 ):
     """
-    Extrahiert Koeffizient, clusterrobusten Standardfehler,
-    t-Wert, p-Wert und 95%-Konfidenzintervall.
+    Extracts the coefficient, cluster-robust standard error,
+    t-value, p-value and 95% confidence interval.
     """
     parameter_names = fitted_ols.model.exog_names
 
     if parameter not in parameter_names:
         raise ValueError(
-            f"Der Parameter '{parameter}' wurde nicht "
-            "in der Modellmatrix gefunden."
+            f"The parameter '{parameter}' was not found "
+            "in the model matrix."
         )
 
     parameter_index = parameter_names.index(parameter)
@@ -186,7 +186,7 @@ def interpret_result(
     model_label,
 ):
     """
-    Erstellt eine automatische, richtungsbezogene Interpretation.
+    Creates an automatic, direction-based interpretation.
     """
     direction_matches = (
         coefficient < 0
@@ -196,25 +196,25 @@ def interpret_result(
 
     if direction_matches and p_value < 0.05:
         return (
-            f"{model_label}: Der Koeffizient weist in die erwartete "
-            "Richtung und ist statistisch signifikant."
+            f"{model_label}: The coefficient points in the expected "
+            "direction and is statistically significant."
         )
 
     if direction_matches:
         return (
-            f"{model_label}: Der Koeffizient weist in die erwartete "
-            "Richtung, ist aber nicht statistisch signifikant."
+            f"{model_label}: The coefficient points in the expected "
+            "direction but is not statistically significant."
         )
 
     if p_value < 0.05:
         return (
-            f"{model_label}: Der Koeffizient ist statistisch signifikant, "
-            "weist aber in die der Hypothese entgegengesetzte Richtung."
+            f"{model_label}: The coefficient is statistically significant "
+            "but points in the direction opposite to the hypothesis."
         )
 
     return (
-        f"{model_label}: Der Koeffizient weist nicht in die erwartete "
-        "Richtung und ist nicht statistisch signifikant."
+        f"{model_label}: The coefficient does not point in the expected "
+        "direction and is not statistically significant."
     )
 
 
@@ -227,7 +227,7 @@ def run_wild_cluster_bootstrap(
     heading,
 ):
     """
-    Führt einen Wild-Cluster-Bootstrap aus und speichert das Ergebnis.
+    Runs a wild cluster bootstrap and saves the result.
     """
     print("\n" + "=" * 70)
     print(heading)
@@ -255,11 +255,11 @@ def run_wild_cluster_bootstrap(
 
     except Exception as error:
         print(
-            f"Der Wild-Cluster-Bootstrap {bootstrap_type} "
-            "konnte nicht berechnet werden."
+            f"The wild cluster bootstrap {bootstrap_type} "
+            "could not be computed."
         )
-        print(f"Fehlertyp: {type(error).__name__}")
-        print(f"Fehlermeldung: {error}")
+        print(f"Error type: {type(error).__name__}")
+        print(f"Error message: {error}")
 
         save_bootstrap_error(error, output_path)
         return None
@@ -270,8 +270,8 @@ def prepare_analysis_sample(
     outcome,
 ):
     """
-    Erstellt für eine abhängige Variable die vollständige
-    Mainstream-Analysestichprobe.
+    Creates the complete mainstream analysis sample
+    for a dependent variable.
     """
     required_columns = [
         outcome,
@@ -290,7 +290,7 @@ def prepare_analysis_sample(
 
     if missing_columns:
         raise ValueError(
-            "Folgende benötigte Variablen fehlen im Datensatz:\n"
+            "The following required variables are missing from the dataset:\n"
             + "\n".join(
                 f"- {column}"
                 for column in missing_columns
@@ -310,8 +310,8 @@ def prepare_analysis_sample(
 
     if analysis_df.empty:
         raise ValueError(
-            f"Nach Anwendung der Filter enthält die Stichprobe "
-            f"für '{outcome}' keine Beobachtungen."
+            f"After applying the filters, the sample "
+            f"for '{outcome}' contains no observations."
         )
 
     analysis_df[PARTY] = analysis_df[PARTY].astype("category")
@@ -325,8 +325,8 @@ def prepare_analysis_sample(
 
     if (analysis_df["cluster_id"] < 0).any():
         raise ValueError(
-            "Bei der Erstellung der numerischen Cluster-ID "
-            "sind ungültige Werte entstanden."
+            "Invalid values were created while generating "
+            "the numeric cluster ID."
         )
 
     return analysis_df
@@ -337,29 +337,29 @@ def check_panel_structure(
     model_label,
 ):
     """
-    Gibt zentrale Informationen zur Panelstruktur aus und prüft
-    doppelte Partei-Intervall-Kombinationen.
+    Prints key information on the panel structure and checks
+    for duplicate party-interval combinations.
     """
     print("\n" + "=" * 70)
-    print(f"H2: Analysestichprobe – {model_label}")
+    print(f"H2: Analysis sample – {model_label}")
     print("=" * 70)
 
-    print(f"Analyseeinheiten: {len(analysis_df)}")
+    print(f"Analysis units: {len(analysis_df)}")
     print(
-        "Zahl der Parteien/Cluster: "
+        "Number of parties/clusters: "
         f"{analysis_df[PARTY].nunique()}"
     )
     print(
-        "Zahl der Wahlperioden: "
+        "Number of electoral terms: "
         f"{analysis_df[PERIOD].nunique()}"
     )
 
     print(
-        "Zahl der Umfrageintervalle: "
+        "Number of polling intervals: "
         f"{analysis_df['poll_interval_id'].nunique()}"
     )
 
-    print("\nBeobachtungen je Partei:")
+    print("\nObservations per party:")
     print(
         analysis_df.groupby(
             PARTY,
@@ -367,7 +367,7 @@ def check_panel_structure(
         ).size()
     )
 
-    print("\nBeobachtungen je Wahlperiode:")
+    print("\nObservations per electoral term:")
     print(
         analysis_df.groupby(
             PERIOD,
@@ -375,7 +375,7 @@ def check_panel_structure(
         ).size()
     )
 
-    print("\nZuordnung der numerischen Cluster-IDs:")
+    print("\nMapping of numeric cluster IDs:")
     print(
         analysis_df[
             [PARTY, "cluster_id"]
@@ -393,7 +393,7 @@ def check_panel_structure(
     n_duplicate_rows = int(duplicate_rows.sum())
 
     print(
-        "\nDoppelte Partei-Intervall-Zeilen: "
+        "\nDuplicate party-interval rows: "
         f"{n_duplicate_rows}"
     )
 
@@ -406,7 +406,7 @@ def check_panel_structure(
             .sort_values([PARTY, "poll_interval_id"])
         )
 
-        print("\nBeispiele doppelter Kombinationen:")
+        print("\nExamples of duplicate combinations:")
         print(
             duplicate_examples
             .head(20)
@@ -414,8 +414,8 @@ def check_panel_structure(
         )
 
         raise ValueError(
-            "Die Analysedatei enthält doppelte Kombinationen "
-            "aus Partei und Umfrageintervall."
+            "The analysis file contains duplicate combinations "
+            "of party and polling interval."
         )
 
 
@@ -424,8 +424,8 @@ def fit_cluster_model(
     formula,
 ):
     """
-    Schätzt ein OLS-Modell mit Dummy-Variablen für die Fixed Effects
-    und berechnet clusterrobuste Inferenz auf Parteiebene.
+    Estimates an OLS model with dummy variables for the fixed effects
+    and computes cluster-robust inference at the party level.
     """
     model = smf.ols(
         formula=formula,
@@ -441,9 +441,9 @@ def fit_cluster_model(
     n_model_rows = model.exog.shape[0]
     n_cluster_rows = len(cluster_array)
 
-    print("\nZeilen im Analysedatensatz:", len(analysis_df))
-    print("Zeilen in der Modellmatrix:", n_model_rows)
-    print("Zeilen im Cluster-Array:", n_cluster_rows)
+    print("\nRows in the analysis dataset:", len(analysis_df))
+    print("Rows in the model matrix:", n_model_rows)
+    print("Rows in the cluster array:", n_cluster_rows)
 
     if not (
         len(analysis_df)
@@ -451,8 +451,8 @@ def fit_cluster_model(
         == n_cluster_rows
     ):
         raise ValueError(
-            "Die Zahl der Modellzeilen stimmt nicht mit der Zahl "
-            "der Clusterkennungen überein."
+            "The number of model rows does not match the number "
+            "of cluster identifiers."
         )
 
     fitted_cluster = (
@@ -479,8 +479,8 @@ def run_model_specification(
     model_spec,
 ):
     """
-    Führt Hauptmodell und Bootstrap-Tests für eine
-    H2-Operationalisierung vollständig aus.
+    Runs the main model and bootstrap tests in full for one
+    H2 operationalization.
     """
     label = model_spec["label"]
     outcome = model_spec["outcome"]
@@ -512,7 +512,7 @@ def run_model_specification(
     )
 
     print("\n" + "=" * 70)
-    print(f"H2: Deskriptive Werte – {label}")
+    print(f"H2: Descriptive statistics – {label}")
     print("=" * 70)
 
     descriptive_variables = model_spec["descriptive_variables"]
@@ -526,7 +526,7 @@ def run_model_specification(
     )
 
     # -------------------------------------------------
-    # Hauptmodell mit Partei- und Wahlperioden-FE
+    # Main model with party and electoral-term FE
     # -------------------------------------------------
 
     formula_main = f"""
@@ -537,7 +537,7 @@ def run_model_specification(
     """
 
     print("\n" + "=" * 70)
-    print(f"H2: Hauptmodell – {label}")
+    print(f"H2: Main model – {label}")
     print("=" * 70)
     print(formula_main.strip())
 
@@ -567,26 +567,26 @@ def run_model_specification(
     n_observations = int(fitted_main_ols.nobs)
     n_clusters = int(analysis_df[PARTY].nunique())
 
-    print(f"Beobachtungen:          {n_observations}")
-    print(f"Parteien/Cluster:       {n_clusters}")
+    print(f"Observations:            {n_observations}")
+    print(f"Parties/clusters:        {n_clusters}")
     print(
-        "Koeffizient:            "
+        "Coefficient:             "
         f"{estimates_main['coefficient']:.3f}"
     )
     print(
-        "Clusterrobuster SE:     "
+        "Cluster-robust SE:       "
         f"{estimates_main['cluster_robust_se']:.3f}"
     )
     print(
-        "t-Wert:                 "
+        "t-value:                 "
         f"{estimates_main['t_value']:.3f}"
     )
     print(
-        "p-Wert:                 "
+        "p-value:                 "
         f"{estimates_main['p_value']:.3f}"
     )
     print(
-        "95%-Konfidenzintervall: "
+        "95% confidence interval: "
         f"[{estimates_main['ci_95_low']:.3f}, "
         f"{estimates_main['ci_95_high']:.3f}]"
     )
@@ -645,38 +645,38 @@ def run_model_specification(
         heading=f"H2: WCR31 – {label}",
     )
 
-    print("\nGespeicherte Dateien für dieses Modell:")
-    print(f"- Analysestichprobe: {output_analysis_sample}")
-    print(f"- Hauptmodell:       {output_model_results}")
-    print(f"- Bootstrap WCR11:   {output_bootstrap_11}")
-    print(f"- Bootstrap WCR31:   {output_bootstrap_31}")
+    print("\nSaved files for this model:")
+    print(f"- Analysis sample: {output_analysis_sample}")
+    print(f"- Main model:      {output_model_results}")
+    print(f"- Bootstrap WCR11: {output_bootstrap_11}")
+    print(f"- Bootstrap WCR31: {output_bootstrap_31}")
 
     return main_result
 
 
 
 # =====================================================
-# 3. DATEN EINLESEN
+# 3. LOAD DATA
 # =====================================================
 
 if not INPUT_FILE.exists():
     raise FileNotFoundError(
-        f"Die Eingabedatei wurde nicht gefunden:\n"
+        f"The input file was not found:\n"
         f"{INPUT_FILE.resolve()}"
     )
 
 df = pd.read_csv(INPUT_FILE)
 
 print("=" * 70)
-print("H2: Daten eingelesen")
+print("H2: Data loaded")
 print("=" * 70)
-print(f"Datei: {INPUT_FILE}")
-print(f"Zeilen im Gesamtdatensatz: {len(df)}")
-print(f"Spalten im Gesamtdatensatz: {len(df.columns)}")
+print(f"File: {INPUT_FILE}")
+print(f"Rows in the full dataset: {len(df)}")
+print(f"Columns in the full dataset: {len(df.columns)}")
 
 
 # =====================================================
-# 4. BEIDE H2-OPERATIONALISIERUNGEN SCHÄTZEN
+# 4. ESTIMATE BOTH H2 OPERATIONALIZATIONS
 # =====================================================
 
 all_main_results = []
@@ -684,7 +684,7 @@ all_main_results = []
 for model_key, model_spec in MODEL_SPECS.items():
     print("\n\n" + "#" * 70)
     print(
-        f"STARTE H2-MODELL: "
+        f"STARTING H2 MODEL: "
         f"{model_spec['label'].upper()}"
     )
     print("#" * 70)
@@ -699,7 +699,7 @@ for model_key, model_spec in MODEL_SPECS.items():
 
 
 # =====================================================
-# 5. GEMEINSAME ERGEBNISTABELLE SPEICHERN
+# 5. SAVE COMBINED RESULTS TABLE
 # =====================================================
 
 combined_main_results = pd.concat(
@@ -721,14 +721,14 @@ combined_main_results.to_csv(
 
 
 # =====================================================
-# 6. ABSCHLUSSAUSGABE
+# 6. FINAL OUTPUT
 # =====================================================
 
 print("\n\n" + "=" * 70)
-print("H2: ALLE ANALYSEN ABGESCHLOSSEN")
+print("H2: ALL ANALYSES COMPLETED")
 print("=" * 70)
 
-print("\nHauptmodelle im Vergleich:")
+print("\nMain models compared:")
 print(
     combined_main_results[
         [
@@ -749,14 +749,13 @@ print(
     .to_string(index=False)
 )
 
-print("\nGemeinsame Ergebnisdatei:")
-print(f"- Hauptmodelle:      {output_combined_main}")
+print("\nCombined results file:")
+print(f"- Main models:       {output_combined_main}")
 
 print(
-    "\nHinweis zur Interpretation:\n"
-    "- Beim Distanzmodell unterstützt ein negativer Koeffizient H2.\n"
-    "- Beim Modell des absoluten Populismus unterstützt ein positiver "
-    "Koeffizient H2.\n"
-    "- Beide Modelle beantworten unterschiedliche, aber komplementäre "
-    "Fragen."
+    "\nNote on interpretation:\n"
+    "- In the distance model, a negative coefficient supports H2.\n"
+    "- In the absolute populism model, a positive coefficient supports "
+    "H2.\n"
+    "- The two models answer different but complementary questions."
 )

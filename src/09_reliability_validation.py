@@ -23,7 +23,7 @@ N_RUNS = 10
 SAVE_EVERY = 50
 MAX_RETRIES = 3
 
-# Kein Seed setzen: Ziel ist echte Run-zu-Run-Stabilität.
+# Do not set a seed: the goal is true run-to-run stability.
 
 P_COLS = [
     "P1_people",
@@ -146,7 +146,7 @@ def check_required_columns(df: pd.DataFrame, required_columns: list[str]) -> Non
 
     if missing_columns:
         raise ValueError(
-            "Folgende erwartete Spalten fehlen im Input-Datensatz: "
+            "The following expected columns are missing in the input dataset: "
             + ", ".join(missing_columns)
         )
 
@@ -156,7 +156,7 @@ def create_client() -> OpenAI:
     api_key = os.getenv("OPENAI_API_KEY")
 
     if not api_key:
-        raise ValueError("OPENAI_API_KEY wurde nicht gefunden. Prüfe deine .env-Datei.")
+        raise ValueError("OPENAI_API_KEY not found. Check your .env file.")
 
     return OpenAI(api_key=api_key)
 
@@ -192,14 +192,14 @@ def code_with_retry(client: OpenAI, text: str) -> dict:
 
 
 def is_present(value: object) -> bool:
-    """True, wenn eine GAL-TAN-Dimension numerisch codiert wurde."""
+    """True if a GAL-TAN dimension was coded numerically."""
     return str(value) != "NaN"
 
 
 def calculate_pairwise_percent_agreement(results_df: pd.DataFrame, col: str) -> tuple[float | None, int]:
     """
-    Berechnet für jede Rede die paarweise Übereinstimmung über alle Runs und
-    mittelt anschließend über alle Reden.
+    Compute pairwise agreement across all runs for each speech,
+    then average across all speeches.
     """
     agreements = []
 
@@ -355,14 +355,14 @@ def calculate_stability(results_df: pd.DataFrame) -> pd.DataFrame:
 
 def aggregate_10_runs(results_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Aggregiert erfolgreiche Runs je Rede.
+    Aggregate successful runs per speech.
 
     P1-P3:
-        Modalwert über alle erfolgreichen Runs.
+    Mode across all successful runs.
 
     G1-G5:
-        Bei Presence in mindestens 50 % der erfolgreichen Runs wird der Mittelwert
-        der numerischen Werte gebildet. Sonst wird 'NaN' ausgegeben.
+    If the dimension is present in at least 50% of successful runs, the mean
+    of the numeric values is used. Otherwise 'NaN' is returned.
     """
     aggregated_rows = []
 
@@ -423,7 +423,7 @@ def main() -> None:
     df = pd.read_csv(INPUT_FILE)
     check_required_columns(df, REQUIRED_COLUMNS)
 
-    print(f"{len(df)} Reden geladen")
+    print(f"{len(df)} Speeches loaded")
     print(df[[ID_COLUMN]].head())
 
     results = []
@@ -432,7 +432,7 @@ def main() -> None:
 
     for run in range(1, N_RUNS + 1):
         print("\n======================================")
-        print(f"Starte Durchlauf {run}/{N_RUNS}")
+        print(f"Starting run {run}/{N_RUNS}")
         print("======================================\n")
 
         for _, row in tqdm(df.iterrows(), total=len(df)):
@@ -448,8 +448,8 @@ def main() -> None:
             if len(results) > 0 and len(results) % SAVE_EVERY == 0:
                 save_long_results(results, errors)
                 print(
-                    f"Zwischengespeichert: {len(results)} erfolgreiche Codierungen "
-                    f"von ca. {total_calls} geplanten API-Calls."
+                    f"Checkpoint saved: {len(results)} successful codings"
+                    f"out of approx. {total_calls} planned API calls."
                 )
 
     results_df = pd.DataFrame(results)
@@ -457,27 +457,27 @@ def main() -> None:
 
     save_long_results(results, errors)
 
-    print("\nCodierung fertig.")
-    print(f"Erfolgreiche Codierungen: {len(results_df)}")
-    print(f"Fehler: {len(errors_df)}")
+    print("\nCoding complete.")
+    print(f"Successful codings: {len(results_df)}")
+    print(f"Errors: {len(errors_df)}")
 
-    print("\nBerechne Stabilitätsreport...")
+    print("\nComputing stability report...")
     stability_df = calculate_stability(results_df)
 
     OUTPUT_FILE_STABILITY.parent.mkdir(parents=True, exist_ok=True)
     stability_df.to_csv(OUTPUT_FILE_STABILITY, index=False)
 
-    print(f"\nStabilitätsreport gespeichert: {OUTPUT_FILE_STABILITY}")
+    print(f"\nStability report saved: {OUTPUT_FILE_STABILITY}")
     print(stability_df)
 
-    print("\nErstelle aggregierte 10-Run-Datei...")
+    print("\nCreating aggregated 10-run file...")
     aggregated_df = aggregate_10_runs(results_df)
 
     OUTPUT_FILE_AGGREGATED.parent.mkdir(parents=True, exist_ok=True)
     aggregated_df.to_csv(OUTPUT_FILE_AGGREGATED, index=False)
 
-    print(f"\nAggregierte Datei gespeichert: {OUTPUT_FILE_AGGREGATED}")
-    print("\nFertig.")
+    print(f"\nAggregated file saved: {OUTPUT_FILE_AGGREGATED}")
+    print("\nDone.")
 
 
 if __name__ == "__main__":

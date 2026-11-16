@@ -30,7 +30,7 @@ def validate_columns(df: pd.DataFrame, required_columns: list[str]) -> None:
     """Check whether all explicitly expected columns are present."""
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
-        raise ValueError(f"Fehlende Spalten in der Rohdatei: {missing_columns}")
+        raise ValueError(f"Missing columns in the raw file: {missing_columns}")
 
 
 def main() -> None:
@@ -38,21 +38,21 @@ def main() -> None:
     validate_columns(df, REQUIRED_COLUMNS)
 
     print("=" * 80)
-    print("CPP-BT Reden geladen")
+    print("CPP-BT speeches loaded")
     print("=" * 80)
-    print("Form:", df.shape)
-    print("\nSpalten:")
+    print("Shape:", df.shape)
+    print("\nColumns:")
     print(df.columns.tolist())
-    print("\nErste Zeilen:")
+    print("\nFirst rows:")
     print(df.head())
-    print("\nDatentypen:")
+    print("\nData types:")
     print(df.dtypes)
-    print("\nDatensatzgröße:")
+    print("\nDataset size:")
     print(df.shape)
 
     SAMPLE_PATH.parent.mkdir(parents=True, exist_ok=True)
     df.head(1000).to_csv(SAMPLE_PATH, index=False)
-    print(f"\nStichprobe gespeichert: {SAMPLE_PATH}")
+    print(f"\nSample saved: {SAMPLE_PATH}")
 
 
 if __name__ == "__main__":

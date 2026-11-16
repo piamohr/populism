@@ -1,34 +1,34 @@
 # ============================================================
-# H2 AUF AGGREGIERTER MAINSTREAM-EBENE
+# H2 AT THE AGGREGATED MAINSTREAM LEVEL
 #
 # H2:
-# Je größer die Unterstützung der AfD ist, desto populistischer
-# kommunizieren die Mainstream-Parteien.
+# The greater the support for the AfD, the more populist
+# the mainstream parties communicate.
 #
-# Die Hypothese wird mit zwei komplementären
-# Operationalisierungen geprüft:
+# The hypothesis is tested with two complementary
+# operationalizations:
 #
-# MODELL A: Absoluter Populismus der Mainstream-Parteien
-#   AV: mean_populism_score
-#   Erwartung: Koeffizient von afd_support_t > 0
+# MODEL A: Absolute populism of the mainstream parties
+#   DV: mean_populism_score
+#   Expectation: coefficient of afd_support_t > 0
 #
-# MODELL B: Rhetorische Distanz zur AfD
-#   AV: populism_distance_to_afd
-#   Erwartung: Koeffizient von afd_support_t < 0
+# MODEL B: Rhetorical distance to the AfD
+#   DV: populism_distance_to_afd
+#   Expectation: coefficient of afd_support_t < 0
 #
-# Analyseeinheit:
-# Umfrageintervall, aggregiert über alle Mainstream-Parteien
+# Unit of analysis:
+# Polling interval, aggregated across all mainstream parties
 #
-# Inferenz:
-# Newey-West-/HAC-Standardfehler, da nur eine aggregierte
-# Zeitreihe und keine Parteicluster vorliegen.
+# Inference:
+# Newey-West/HAC standard errors, because only one aggregated
+# time series and no party clusters are available.
 #
-# Für beide Operationalisierungen werden geschätzt:
-#   1. Hauptmodell mit Wahlperioden-Fixed-Effects
-#   2. HAC-Sensitivitätsanalyse mit mehreren Lag-Längen
+# For both operationalizations, the following are estimated:
+#   1. Main model with electoral-term fixed effects
+#   2. HAC sensitivity analysis with several lag lengths
 #
-# Alle Ergebniswerte werden mit drei Nachkommastellen
-# ausgegeben und gespeichert.
+# All result values are printed and saved
+# with three decimal places.
 # ============================================================
 
 from pathlib import Path
@@ -39,7 +39,7 @@ import statsmodels.formula.api as smf
 
 
 # ============================================================
-# 1. EINSTELLUNGEN
+# 1. SETTINGS
 # ============================================================
 
 INPUT_FILE = Path(
@@ -59,14 +59,14 @@ DECIMALS = 3
 
 MODEL_SPECS = {
     "absolute_populism": {
-        "label": "Absoluter Populismus",
+        "label": "Absolute populism",
         "outcome": "mean_populism_score",
         "expected_direction": "positive",
         "expected_sign": 1,
         "output_prefix": "h2_mainstream_absolute_populism",
     },
     "distance_to_afd": {
-        "label": "Rhetorische Distanz zur AfD",
+        "label": "Rhetorical distance to the AfD",
         "outcome": "populism_distance_to_afd",
         "expected_direction": "negative",
         "expected_sign": -1,
@@ -76,16 +76,16 @@ MODEL_SPECS = {
 
 
 # ============================================================
-# 2. HILFSFUNKTIONEN
+# 2. HELPER FUNCTIONS
 # ============================================================
 
 def automatic_hac_lag(n_observations: int) -> int:
     """
-    Automatische Newey-West-Lag-Auswahl nach der Faustregel:
+    Automatic Newey-West lag selection using the rule of thumb:
 
     floor(4 * (n / 100)^(2/9))
 
-    Mindestens ein Lag wird verwendet.
+    At least one lag is used.
     """
     lag = int(
         np.floor(
@@ -101,14 +101,14 @@ def extract_parameter(
     parameter_name: str,
 ) -> dict:
     """
-    Extrahiert Koeffizient, Standardfehler, Teststatistik,
-    p-Wert und Konfidenzintervall anhand des Parameternamens.
+    Extracts the coefficient, standard error, test statistic,
+    p-value and confidence interval by parameter name.
     """
     if parameter_name not in result.params.index:
         raise ValueError(
-            f"Parameter '{parameter_name}' wurde im Modell "
-            "nicht gefunden.\n"
-            f"Vorhandene Parameter: {list(result.params.index)}"
+            f"Parameter '{parameter_name}' was not found in the "
+            "model.\n"
+            f"Available parameters: {list(result.params.index)}"
         )
 
     confidence_interval = result.conf_int(
@@ -143,8 +143,8 @@ def fit_hac_model(
     maxlags: int,
 ):
     """
-    Schätzt ein OLS-Modell mit HAC-/Newey-West-
-    Standardfehlern.
+    Estimates an OLS model with HAC/Newey-West
+    standard errors.
     """
     model = smf.ols(
         formula=formula,
@@ -166,7 +166,7 @@ def round_numeric_columns(
     decimals: int = DECIMALS,
 ) -> pd.DataFrame:
     """
-    Rundet alle numerischen Spalten eines DataFrames.
+    Rounds all numeric columns of a DataFrame.
     """
     rounded = dataframe.copy()
 
@@ -186,8 +186,8 @@ def save_result_dataframe(
     output_path: Path,
 ):
     """
-    Speichert numerische Ergebniswerte mit drei
-    Nachkommastellen als CSV.
+    Saves numeric result values as a CSV file with three
+    decimal places.
     """
     round_numeric_columns(
         dataframe,
@@ -204,8 +204,8 @@ def direction_matches(
     expected_sign: int,
 ) -> bool:
     """
-    Prüft, ob der geschätzte Koeffizient in die
-    erwartete Richtung weist.
+    Checks whether the estimated coefficient points in the
+    expected direction.
     """
     if expected_sign == 1:
         return coefficient > 0
@@ -214,7 +214,7 @@ def direction_matches(
         return coefficient < 0
 
     raise ValueError(
-        "expected_sign muss entweder 1 oder -1 sein."
+        "expected_sign must be either 1 or -1."
     )
 
 
@@ -225,7 +225,7 @@ def interpret_result(
     label: str,
 ) -> str:
     """
-    Erstellt eine richtungsbezogene Ergebnisinterpretation.
+    Creates a direction-based interpretation of the result.
     """
     matches = direction_matches(
         coefficient=coefficient,
@@ -236,25 +236,25 @@ def interpret_result(
 
     if matches and significant:
         return (
-            f"{label}: Der Koeffizient weist in die erwartete "
-            "Richtung und ist statistisch signifikant."
+            f"{label}: The coefficient points in the expected "
+            "direction and is statistically significant."
         )
 
     if matches and not significant:
         return (
-            f"{label}: Der Koeffizient weist in die erwartete "
-            "Richtung, ist aber nicht statistisch signifikant."
+            f"{label}: The coefficient points in the expected "
+            "direction but is not statistically significant."
         )
 
     if not matches and significant:
         return (
-            f"{label}: Der Koeffizient ist statistisch signifikant, "
-            "weist aber in die der Hypothese entgegengesetzte Richtung."
+            f"{label}: The coefficient is statistically significant "
+            "but points in the direction opposite to the hypothesis."
         )
 
     return (
-        f"{label}: Der Koeffizient weist nicht in die erwartete "
-        "Richtung und ist nicht statistisch signifikant."
+        f"{label}: The coefficient does not point in the expected "
+        "direction and is not statistically significant."
     )
 
 
@@ -263,8 +263,8 @@ def prepare_analysis_sample(
     outcome: str,
 ) -> pd.DataFrame:
     """
-    Erstellt die vollständige und chronologisch sortierte
-    Analysestichprobe für eine abhängige Variable.
+    Creates the complete, chronologically sorted analysis
+    sample for a dependent variable.
     """
     required_columns = [
         outcome,
@@ -281,7 +281,7 @@ def prepare_analysis_sample(
 
     if missing_columns:
         raise ValueError(
-            "Folgende Variablen fehlen:\n"
+            "The following variables are missing:\n"
             + "\n".join(
                 f"- {column}"
                 for column in missing_columns
@@ -329,8 +329,8 @@ def prepare_analysis_sample(
 
     if len(analysis_df) < 10:
         raise ValueError(
-            f"Für die Zeitreihenanalyse von '{outcome}' liegen "
-            "weniger als zehn vollständige Beobachtungen vor."
+            f"Fewer than ten complete observations are available "
+            f"for the time-series analysis of '{outcome}'."
         )
 
     return analysis_df
@@ -342,30 +342,30 @@ def print_model_result(
     interpretation: str,
 ):
     """
-    Gibt ein Modellergebnis einheitlich in der Konsole aus.
+    Prints a model result to the console in a uniform format.
     """
     print("\n" + "=" * 72)
     print(heading)
     print("=" * 72)
 
     print(
-        f"Koeffizient:        "
+        f"Coefficient:        "
         f"{stats['coefficient']:.3f}"
     )
     print(
-        f"HAC-Standardfehler: "
+        f"HAC standard error: "
         f"{stats['standard_error']:.3f}"
     )
     print(
-        f"t-Wert:             "
+        f"t-value:            "
         f"{stats['test_statistic']:.3f}"
     )
     print(
-        f"p-Wert:             "
+        f"p-value:            "
         f"{stats['p_value']:.3f}"
     )
     print(
-        "95%-KI:             "
+        "95% CI:             "
         f"[{stats['ci_95_low']:.3f}, "
         f"{stats['ci_95_high']:.3f}]"
     )
@@ -379,8 +379,8 @@ def run_h2_model(
     model_spec: dict,
 ) -> dict:
     """
-    Führt Hauptmodell und HAC-Sensitivitätsanalyse für eine
-    H2-Operationalisierung aus.
+    Runs the main model and the HAC sensitivity analysis for one
+    H2 operationalization.
     """
     label = model_spec["label"]
     outcome = model_spec["outcome"]
@@ -407,34 +407,34 @@ def run_h2_model(
     main_hac_lag = automatic_hac_lag(n_observations)
 
     print("\n\n" + "#" * 72)
-    print(f"STARTE H2-MODELL: {label.upper()}")
+    print(f"STARTING H2 MODEL: {label.upper()}")
     print("#" * 72)
 
     print("\n" + "=" * 72)
-    print(f"H2: Aggregierte Mainstream-Ebene – {label}")
+    print(f"H2: Aggregated mainstream level – {label}")
     print("=" * 72)
 
-    print(f"Abhängige Variable: {outcome}")
-    print(f"Analyseeinheiten: {n_observations}")
+    print(f"Dependent variable: {outcome}")
+    print(f"Analysis units: {n_observations}")
     print(
-        f"Zeitraum: "
-        f"{analysis_df[DATE].min().date()} bis "
+        f"Period: "
+        f"{analysis_df[DATE].min().date()} to "
         f"{analysis_df[DATE].max().date()}"
     )
     print(
-        f"Wahlperioden: "
+        f"Electoral terms: "
         f"{analysis_df[PERIOD].nunique()}"
     )
     print(
-        f"Automatisch gewählter HAC-Lag: "
+        f"Automatically selected HAC lag: "
         f"{main_hac_lag}"
     )
     print(
-        f"Erwartete Richtung: "
+        f"Expected direction: "
         f"{expected_direction}"
     )
 
-    print("\nDeskriptive Werte:")
+    print("\nDescriptive statistics:")
     print(
         analysis_df[
             [outcome, PREDICTOR]
@@ -444,7 +444,7 @@ def run_h2_model(
     )
 
     # --------------------------------------------------------
-    # Hauptmodell mit Wahlperioden-Fixed-Effects
+    # Main model with electoral-term fixed effects
     # --------------------------------------------------------
 
     main_formula = f"""
@@ -479,12 +479,12 @@ def run_h2_model(
         label=label,
     )
 
-    print("\nModellspezifikation:")
+    print("\nModel specification:")
     print(main_formula.strip())
 
     print_model_result(
         heading=(
-            f"H2: Hauptmodell mit Wahlperioden-Fixed-Effects "
+            f"H2: Main model with electoral-term fixed effects "
             f"– {label}"
         ),
         stats=main_stats,
@@ -492,7 +492,7 @@ def run_h2_model(
     )
 
     # --------------------------------------------------------
-    # HAC-Sensitivitätsanalyse
+    # HAC sensitivity analysis
     # --------------------------------------------------------
 
     candidate_lags = sorted(
@@ -558,7 +558,7 @@ def run_h2_model(
     )
 
     print("\n" + "=" * 72)
-    print(f"HAC-Sensitivitätsanalyse – {label}")
+    print(f"HAC sensitivity analysis – {label}")
     print("=" * 72)
 
     print(
@@ -581,7 +581,7 @@ def run_h2_model(
     )
 
     # --------------------------------------------------------
-    # Ergebnisse speichern
+    # Save results
     # --------------------------------------------------------
 
     main_output = pd.DataFrame(
@@ -630,7 +630,7 @@ def run_h2_model(
         index=False,
     )
 
-    print("\nGespeicherte Dateien:")
+    print("\nSaved files:")
     print(f"- {output_main_model}")
     print(f"- {output_hac_sensitivity}")
     print(f"- {output_analysis_sample}")
@@ -642,26 +642,26 @@ def run_h2_model(
 
 
 # ============================================================
-# 3. DATEN EINLESEN
+# 3. LOAD DATA
 # ============================================================
 
 if not INPUT_FILE.exists():
     raise FileNotFoundError(
-        f"Datei nicht gefunden:\n{INPUT_FILE.resolve()}"
+        f"File not found:\n{INPUT_FILE.resolve()}"
     )
 
 df = pd.read_csv(INPUT_FILE)
 
 print("=" * 72)
-print("H2: Aggregierte Mainstream-Analyse")
+print("H2: Aggregated mainstream analysis")
 print("=" * 72)
-print(f"Datei: {INPUT_FILE}")
-print(f"Zeilen im Gesamtdatensatz: {len(df)}")
-print(f"Spalten im Gesamtdatensatz: {len(df.columns)}")
+print(f"File: {INPUT_FILE}")
+print(f"Rows in the full dataset: {len(df)}")
+print(f"Columns in the full dataset: {len(df.columns)}")
 
 
 # ============================================================
-# 4. BEIDE H2-OPERATIONALISIERUNGEN SCHÄTZEN
+# 4. ESTIMATE BOTH H2 OPERATIONALIZATIONS
 # ============================================================
 
 all_main_results = []
@@ -683,7 +683,7 @@ for model_key, model_spec in MODEL_SPECS.items():
 
 
 # ============================================================
-# 5. GEMEINSAME ERGEBNISTABELLEN
+# 5. COMBINED RESULT TABLES
 # ============================================================
 
 combined_main_results = pd.concat(
@@ -719,14 +719,14 @@ save_result_dataframe(
 
 
 # ============================================================
-# 6. ABSCHLUSSAUSGABE
+# 6. FINAL OUTPUT
 # ============================================================
 
 print("\n\n" + "=" * 72)
-print("H2: ALLE AGGREGIERTEN MAINSTREAM-ANALYSEN ABGESCHLOSSEN")
+print("H2: ALL AGGREGATED MAINSTREAM ANALYSES COMPLETED")
 print("=" * 72)
 
-print("\nHauptmodelle im Vergleich:")
+print("\nMain models compared:")
 print(
     combined_main_results[
         [
@@ -748,16 +748,16 @@ print(
     .to_string(index=False)
 )
 
-print("\nGemeinsame Ergebnisdateien:")
-print(f"- Hauptmodelle:       {OUTPUT_COMBINED_MAIN}")
-print(f"- HAC-Sensitivität:   {OUTPUT_COMBINED_SENSITIVITY}")
+print("\nCombined result files:")
+print(f"- Main models:        {OUTPUT_COMBINED_MAIN}")
+print(f"- HAC sensitivity:    {OUTPUT_COMBINED_SENSITIVITY}")
 
 print(
-    "\nHinweis zur Interpretation:\n"
-    "- Beim absoluten Populismus unterstützt ein positiver "
-    "Koeffizient H2.\n"
-    "- Beim Distanzmodell unterstützt ein negativer "
-    "Koeffizient H2.\n"
-    "- Beide Operationalisierungen sollten auch in den weiteren "
-    "H2-, H2a-, H2b- und H2c-Analysen parallel beibehalten werden."
+    "\nNote on interpretation:\n"
+    "- For absolute populism, a positive coefficient supports "
+    "H2.\n"
+    "- For the distance model, a negative coefficient supports "
+    "H2.\n"
+    "- Both operationalizations should also be kept in parallel in "
+    "the further H2, H2a, H2b and H2c analyses."
 )

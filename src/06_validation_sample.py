@@ -17,22 +17,22 @@ REQUIRED_COLUMNS = [
 
 
 def check_required_columns(df: pd.DataFrame, required_columns: list[str]) -> None:
-    """Bricht mit klarer Fehlermeldung ab, falls erwartete Spalten fehlen."""
+    """Abort with a clear error message if expected columns are missing."""
     missing_columns = [col for col in required_columns if col not in df.columns]
 
     if missing_columns:
         raise ValueError(
-            "Folgende erwartete Spalten fehlen im Input-Datensatz: "
+            "The following expected columns are missing in the input dataset: "
             + ", ".join(missing_columns)
         )
 
 
 def draw_balanced_sample(group: pd.DataFrame, n: int = N_PER_PARTY) -> pd.DataFrame:
     """
-    Zieht bis zu n Reden je Partei, gleichmäßig über den jeweiligen Zeitraum verteilt.
+    Draw up to n speeches per party, evenly distributed over the party's time span.
 
-    Die Auswahl erfolgt deterministisch über äquidistante Positionen im nach Datum
-    sortierten Parteidatensatz. Dadurch bleibt das Verhalten des Originalskripts erhalten.
+    Selection is deterministic, using equidistant positions in the party dataset
+    sorted by date. This preserves the behavior of the original script.
     """
     group = group.sort_values(DATE_COLUMN)
 
@@ -59,16 +59,16 @@ def main() -> None:
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     validation_sample.to_csv(OUTPUT_FILE, index=False)
 
-    print("\nSamplegröße:")
+    print("\nSample size:")
     print(len(validation_sample))
 
-    print("\nVerteilung nach Partei:")
+    print("\nDistribution by party:")
     print(validation_sample.groupby(PARTY_COLUMN).size())
 
-    print("\nZeitspanne pro Partei:")
+    print("\nTime span per party:")
     print(validation_sample.groupby(PARTY_COLUMN)[DATE_COLUMN].agg(["min", "max"]))
 
-    print(f"\nGespeichert: {OUTPUT_FILE}")
+    print(f"\nSaved: {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":

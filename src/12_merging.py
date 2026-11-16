@@ -3,7 +3,7 @@ import pandas as pd
 
 
 # =====================================================
-# EINSTELLUNGEN
+# SETTINGS
 # =====================================================
 
 METADATA_FILE = Path("data/processed/03_cppbt_government.csv")
@@ -40,19 +40,19 @@ META_COLS = [
 LLM_COLS = [
     "rede_id",
 
-    # Populismus-Dimensionen
+    # Populism dimensions
     "P1_people",
     "P2_anti_elite",
     "P3_outgroup",
 
-    # GAL-TAN-Dimensionen
+    # GAL-TAN dimensions
     "G1_environment",
     "G2_migration",
     "G3_society",
     "G4_civil_rights",
     "G5_cosmopolitanism",
 
-    # Indizes
+    # Indices
     "populism_score",
     "populism_sum",
     "populism_n_valid",
@@ -63,22 +63,22 @@ LLM_COLS = [
 
 
 # =====================================================
-# FUNKTIONEN
+# FUNCTIONS
 # =====================================================
 
 def validate_columns(df: pd.DataFrame, required_cols: list[str], label: str) -> None:
-    """Prüft, ob alle erwarteten Spalten vorhanden sind."""
+    """Check that all expected columns are present."""
 
     missing_cols = [col for col in required_cols if col not in df.columns]
 
     if missing_cols:
-        raise ValueError(f"Diese {label}-Spalten fehlen: {missing_cols}")
+        raise ValueError(f"These {label} columns are missing: {missing_cols}")
 
 
 def prepare_dataframes(meta: pd.DataFrame, llm: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Wählt die benötigten Spalten aus und vereinheitlicht die Merge-ID."""
+    """Select the required columns and harmonize the merge ID."""
 
-    validate_columns(meta, META_COLS, "Metadaten")
+    validate_columns(meta, META_COLS, "metadata")
     validate_columns(llm, LLM_COLS, "LLM")
 
     meta = meta[META_COLS].copy()
@@ -93,39 +93,39 @@ def prepare_dataframes(meta: pd.DataFrame, llm: pd.DataFrame) -> tuple[pd.DataFr
 
 
 def print_pre_merge_checks(meta: pd.DataFrame, llm: pd.DataFrame) -> None:
-    """Gibt dieselben Checks vor dem Merge wie das ursprüngliche Skript aus."""
+    """Print the same pre-merge checks as the original script."""
 
-    print("\nDoppelte rede_id in Metadaten:", meta[ID_COL].duplicated().sum())
-    print("Doppelte rede_id in LLM-Daten:", llm[ID_COL].duplicated().sum())
+    print("\nDuplicate rede_id in metadata:", meta[ID_COL].duplicated().sum())
+    print("Duplicate rede_id in LLM data:", llm[ID_COL].duplicated().sum())
 
     meta_ids = set(meta[ID_COL])
     llm_ids = set(llm[ID_COL])
 
-    print("\nReden in Metadaten:", len(meta_ids))
-    print("Reden in LLM-Daten:", len(llm_ids))
-    print("LLM-Reden ohne Metadaten:", len(llm_ids - meta_ids))
-    print("Metadaten-Reden ohne LLM-Codierung:", len(meta_ids - llm_ids))
+    print("\nSpeeches in metadata:", len(meta_ids))
+    print("Speeches in LLM data:", len(llm_ids))
+    print("LLM speeches without metadata:", len(llm_ids - meta_ids))
+    print("Metadata speeches without LLM coding:", len(meta_ids - llm_ids))
 
 
 def print_post_merge_checks(df: pd.DataFrame) -> None:
-    """Gibt dieselben Plausibilitätschecks wie das ursprüngliche Skript aus."""
+    """Print the same plausibility checks as the original script."""
 
-    print("\nZeitraum:")
-    print(df["sitzung_datum"].min(), "bis", df["sitzung_datum"].max())
+    print("\nTime period:")
+    print(df["sitzung_datum"].min(), "to", df["sitzung_datum"].max())
 
-    print("\nReden pro Partei:")
+    print("\nSpeeches per party:")
     print(df["party_clean"].value_counts(dropna=False))
 
-    print("\nRegierung/Opposition:")
+    print("\nGovernment/opposition:")
     print(df["government_label"].value_counts(dropna=False))
 
-    print("\nPopulismus-Score:")
+    print("\nPopulism score:")
     print(df["populism_score"].describe())
 
-    print("\nGAL-TAN-Score:")
+    print("\nGAL-TAN score:")
     print(df["gal_tan_score"].describe())
 
-    print("\nAnteil ohne GAL-TAN-Score:")
+    print("\nShare without GAL-TAN score:")
     print(df["gal_tan_score"].isna().mean())
 
 
@@ -137,8 +137,8 @@ def main() -> None:
     meta = pd.read_csv(METADATA_FILE)
     llm = pd.read_csv(LLM_FILE)
 
-    print("Metadaten:", meta.shape)
-    print("LLM-Daten:", llm.shape)
+    print("Metadata:", meta.shape)
+    print("LLM data:", llm.shape)
 
     meta, llm = prepare_dataframes(meta, llm)
 
@@ -151,14 +151,14 @@ def main() -> None:
         validate="one_to_one",
     )
 
-    print("\nGemergter Datensatz:", df.shape)
+    print("\nMerged dataset:", df.shape)
 
     print_post_merge_checks(df)
 
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(OUTPUT_FILE, index=False)
 
-    print(f"\nGespeichert unter: {OUTPUT_FILE}")
+    print(f"\nSaved to: {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":

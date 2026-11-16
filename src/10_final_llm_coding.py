@@ -12,7 +12,7 @@ from openai import OpenAI
 
 
 # =====================================================
-# EINSTELLUNGEN
+# SETTINGS
 # =====================================================
 
 INPUT_FILE = Path("data/processed/03_cppbt_government.csv")
@@ -184,7 +184,7 @@ SCHEMA = {
 
 
 # =====================================================
-# VARIABLENLISTEN
+# VARIABLE LISTS
 # =====================================================
 
 P_COLS = [
@@ -205,13 +205,13 @@ ALL_SCORE_COLS = P_COLS + G_COLS
 
 
 # =====================================================
-# HASH-FUNKTIONEN
+# HASH FUNCTIONS
 # =====================================================
 
 def stable_hash(obj):
     """
-    Erstellt einen stabilen Hash für Prompt und Schema.
-    Dieser Hash dient nur der Dokumentation und Reproduzierbarkeit.
+    Create a stable hash for the prompt and schema.
+    This hash is used for documentation and reproducibility only.
     """
 
     if isinstance(obj, str):
@@ -233,7 +233,7 @@ SCHEMA_HASH = stable_hash(SCHEMA)
 
 
 # =====================================================
-# DATEI-HILFSFUNKTIONEN
+# FILE-HELPER FUNCTIONS
 # =====================================================
 
 def ensure_output_dir():
@@ -251,8 +251,8 @@ def utc_now():
 
 def append_jsonl(path, record):
     """
-    Schreibt einen Datensatz sofort als eigene JSONL-Zeile.
-    Dadurch geht bei einem Absturz maximal die gerade laufende Rede verloren.
+    Write a record immediately as its own JSONL line.
+    If the script crashes, at most the speech currently being processed is lost.
     """
 
     with open(path, "a", encoding="utf-8") as f:
@@ -270,8 +270,8 @@ def append_jsonl(path, record):
 
 def read_jsonl(path):
     """
-    Liest eine JSONL-Datei ein.
-    Fehlerhafte oder leere Zeilen werden übersprungen.
+    Read a JSONL file.
+    Malformed or empty lines are skipped.
     """
 
     if not path.exists():
@@ -294,8 +294,8 @@ def read_jsonl(path):
 
             except json.JSONDecodeError:
                 print(
-                    f"Warnung: Fehlerhafte JSONL-Zeile in {path}, "
-                    f"Zeile {line_number}, wurde übersprungen."
+                    f"Warning: Malformed JSONL line in {path}, "
+                    f"line {line_number}, skipped."
                 )
 
     return records
@@ -303,9 +303,8 @@ def read_jsonl(path):
 
 def load_completed_ids():
     """
-    Lädt alle bereits erfolgreich codierten Rede-IDs.
-    Fehlerhafte Reden werden nicht übersprungen,
-    sondern bei einem Neustart erneut versucht.
+    Load all speech IDs that were already coded successfully.
+    Failed speeches are not skipped; they are retried on restart.
     """
 
     records = read_jsonl(OUTPUT_JSONL)
@@ -323,8 +322,8 @@ def load_completed_ids():
 
 def export_csv_from_jsonl():
     """
-    Erstellt oder aktualisiert eine CSV-Kopie aus der JSONL-Datei.
-    Die JSONL-Datei bleibt das primäre Sicherheitsformat.
+    Create or update a CSV copy from the JSONL file.
+    The JSONL file remains the primary safety format.
     """
 
     records = read_jsonl(OUTPUT_JSONL)
@@ -349,10 +348,10 @@ def export_csv_from_jsonl():
 
 def export_analysis_ready_csv():
     """
-    Erstellt zusätzlich eine analysefertige CSV:
-    - Populismusvariablen als Integer
-    - GAL-TAN-Variablen als Float
-    - 'NaN'-Strings als echte fehlende Werte
+    Additionally create an analysis-ready CSV:
+    - populism variables as integers
+    - GAL-TAN variables as floats
+    - 'NaN' strings converted to true missing values
     """
 
     if not OUTPUT_CSV.exists():
@@ -390,9 +389,9 @@ def export_analysis_ready_csv():
 
 def save_or_check_metadata():
     """
-    Speichert Metadaten des Laufs.
-    Falls die Codierung fortgesetzt wird, prüft diese Funktion,
-    ob Modell, Prompt, Schema und Input-Datei unverändert sind.
+    Save the run metadata.
+    If coding is resumed, this function checks whether the model, prompt,
+    schema and input file are unchanged.
     """
 
     metadata = {
@@ -432,12 +431,12 @@ def save_or_check_metadata():
 
             if old_value != new_value:
                 raise ValueError(
-                    f"Metadaten-Konflikt bei '{key}'.\n"
-                    f"Alt: {old_value}\n"
-                    f"Neu: {new_value}\n\n"
-                    f"Du versuchst vermutlich, eine bestehende Codierung "
-                    f"mit verändertem Prompt, Schema, Modell oder Input fortzusetzen. "
-                    f"Nutze dafür einen neuen Output-Ordner oder ein neues RUN_LABEL."
+                    f"Metadata conflict at '{key}'.\n"
+                    f"Old: {old_value}\n"
+                    f"New: {new_value}\n\n"
+                    f"You are probably trying to continue an existing coding "
+                    f"with a changed prompt, schema, model or input. "
+                    f"Use a new output folder or a new RUN_LABEL for that."
                 )
 
     else:
@@ -463,7 +462,7 @@ def setup_client():
 
     if not api_key:
         raise ValueError(
-            "OPENAI_API_KEY wurde nicht gefunden. Prüfe deine .env-Datei."
+            "OPENAI_API_KEY not found. Check your .env file."
         )
 
     client = OpenAI(
@@ -478,12 +477,12 @@ client = setup_client()
 
 
 # =====================================================
-# LLM-FUNKTIONEN
+# LLM FUNCTIONS
 # =====================================================
 
 def usage_to_dict(usage):
     """
-    Extrahiert Tokeninformationen aus der API-Antwort.
+    Extract token information from the API response.
     """
 
     if usage is None:
@@ -502,7 +501,7 @@ def usage_to_dict(usage):
 
 def code_speech(text):
     """
-    Codiert eine einzelne Rede mit dem LLM.
+    Code a single speech with the LLM.
     """
 
     prompt = USER_TEMPLATE.format(
@@ -534,7 +533,7 @@ def code_speech(text):
 
     if not message.content:
         raise ValueError(
-            "Leere Modellantwort."
+            "Empty model response."
         )
 
     coding = json.loads(
@@ -552,8 +551,8 @@ def code_speech(text):
 
 def code_with_retry(text):
     """
-    Wiederholt die Anfrage bei API-, Timeout- oder Parsingfehlern.
-    Nutzt exponentielles Warten mit etwas Zufall.
+    Retry the request after API, timeout or parsing errors.
+    Uses exponential backoff with some random jitter.
     """
 
     last_error = None
@@ -578,9 +577,9 @@ def code_with_retry(text):
             sleep_seconds = sleep_seconds + random.uniform(0, 1.5)
 
             print(
-                f"Retry {attempt}/{MAX_RETRIES} nach Fehler: "
+                f"Retry {attempt}/{MAX_RETRIES} after error: "
                 f"{type(e).__name__}: {e}. "
-                f"Warte {sleep_seconds:.1f}s."
+                f"Waiting {sleep_seconds:.1f}s."
             )
 
             time.sleep(sleep_seconds)
@@ -589,13 +588,12 @@ def code_with_retry(text):
 
 
 # =====================================================
-# DATENPRÜFUNGEN
+# DATA CHECKS
 # =====================================================
 
 def validate_input_df(df):
     """
-    Prüft, ob die notwendigen Spalten vorhanden sind
-    und ob die Rede-IDs eindeutig sind.
+    Check that the required columns exist and that speech IDs are unique.
     """
 
     required_cols = [
@@ -611,21 +609,21 @@ def validate_input_df(df):
 
     if missing_cols:
         raise ValueError(
-            f"Fehlende Spalten im Input: {missing_cols}"
+            f"Missing columns in input: {missing_cols}"
         )
 
     duplicated = df[ID_COLUMN].astype(str).duplicated().sum()
 
     if duplicated > 0:
         raise ValueError(
-            f"{duplicated} doppelte rede_id-Werte gefunden. "
-            f"Für die Resume-Logik müssen Rede-IDs eindeutig sein."
+            f"{duplicated} duplicate rede_id values found. "
+            f"For the resume logic, speech IDs must be unique."
         )
 
 
 def is_valid_text(text):
     """
-    Prüft, ob ein Redetext codierbar ist.
+    Check whether a speech text can be coded.
     """
 
     if text is None:
@@ -666,18 +664,18 @@ def main():
     ].copy()
 
     print("======================================")
-    print("FINALE LLM-CODIERUNG")
+    print("FINAL LLM CODING")
     print("======================================")
-    print(f"Input-Datei: {INPUT_FILE}")
-    print(f"Output-Ordner: {OUTPUT_DIR}")
-    print(f"Modell: {MODEL}")
+    print(f"Input file: {INPUT_FILE}")
+    print(f"Output folder: {OUTPUT_DIR}")
+    print(f"Model: {MODEL}")
     print(f"Temperature: {TEMPERATURE}")
-    print(f"Prompt-Hash: {PROMPT_HASH}")
-    print(f"Schema-Hash: {SCHEMA_HASH}")
+    print(f"Prompt hash: {PROMPT_HASH}")
+    print(f"Schema hash: {SCHEMA_HASH}")
     print("--------------------------------------")
-    print(f"Input-Reden insgesamt: {len(df)}")
-    print(f"Bereits erfolgreich codiert: {len(completed_ids)}")
-    print(f"Noch zu codieren: {len(todo_df)}")
+    print(f"Total input speeches: {len(df)}")
+    print(f"Already coded successfully: {len(completed_ids)}")
+    print(f"Still to code: {len(todo_df)}")
     print("======================================")
 
     successful_since_csv_export = 0
@@ -702,7 +700,7 @@ def main():
                 "schema_hash": SCHEMA_HASH,
                 "failed_at_utc": utc_now(),
                 "error_type": "InvalidText",
-                "error": "Leerer oder ungültiger Redetext."
+                "error": "Empty or invalid speech text."
             }
 
             append_jsonl(
@@ -771,14 +769,14 @@ def main():
     export_analysis_ready_csv()
 
     print("\n======================================")
-    print("FERTIG")
+    print("DONE")
     print("======================================")
-    print(f"Erfolgreich in diesem Lauf: {successful_this_run}")
-    print(f"Fehler in diesem Lauf: {errors_this_run}")
-    print(f"Primäre Ergebnisdatei JSONL: {OUTPUT_JSONL}")
-    print(f"CSV-Kopie: {OUTPUT_CSV}")
-    print(f"Analysefertige CSV: {OUTPUT_ANALYSIS_READY_CSV}")
-    print(f"Fehlerlog: {ERROR_JSONL}")
+    print(f"Successfully coded this run: {successful_this_run}")
+    print(f"Errors this run: {errors_this_run}")
+    print(f"Primary result file (JSONL): {OUTPUT_JSONL}")
+    print(f"CSV copy: {OUTPUT_CSV}")
+    print(f"Analysis-ready CSV: {OUTPUT_ANALYSIS_READY_CSV}")
+    print(f"Error log: {ERROR_JSONL}")
     print("======================================")
 
 

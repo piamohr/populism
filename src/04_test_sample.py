@@ -2,12 +2,13 @@ from pathlib import Path
 import pandas as pd
 
 DATA_PATH = Path("data/processed/03_cppbt_government.csv")
-OUT_PATH = Path("data/processed/06_test_sample.csv")
+OUT_PATH = Path("data/processed/04_test_sample.csv")
 N_SAMPLE = 10
 RANDOM_STATE = 47
 
 
 def main() -> None:
+    """Draw a small random sample of speeches for testing purposes."""
     df = pd.read_csv(DATA_PATH)
     test_df = df.sample(n=N_SAMPLE, random_state=RANDOM_STATE)
 

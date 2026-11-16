@@ -1,31 +1,30 @@
 # ============================================================
-# H2a: MODERATION DURCH DIE IDEOLOGISCHE NÄHE ZUR AFD
+# H2a: MODERATION BY IDEOLOGICAL PROXIMITY TO THE AfD
 #
 # H2a:
-# Je näher eine Mainstream-Partei der AfD steht, desto stärker
-# ist der rhetorische Annäherungseffekt.
+# The closer a mainstream party is to the AfD, the stronger
+# the rhetorical convergence effect.
 #
-# MODELL A: Rhetorische Distanz zur AfD
-#   AV: populism_distance_to_afd
-#   Erwartung: afd_support_c × proximity_c < 0
+# MODEL A: Rhetorical distance to the AfD
+#   DV: populism_distance_to_afd
+#   Expectation: afd_support_c × proximity_c < 0
 #
-# MODELL B: Absoluter Populismus
-#   AV: mean_populism_score
-#   Erwartung: afd_support_c × proximity_c > 0
+# MODEL B: Absolute populism
+#   DV: mean_populism_score
+#   Expectation: afd_support_c × proximity_c > 0
 #
-# Voraussetzung für Modell B:
-# # Für beide Modelle:
-#   - Partei-Fixed-Effects
-#   - Wahlperioden-Fixed-Effects
-#   - Clusterrobuste Standardfehler auf Parteiebene
-#   - Small-Sample-Korrektur
-#   - Wild-Cluster-Bootstrap WCR11 und WCR31
-#   - Simple-Slope-Analysen
-#   - Vorhersagen und Interaktionsgrafiken
+# # For both models:
+#   - Party fixed effects
+#   - Electoral-term fixed effects
+#   - Cluster-robust standard errors at the party level
+#   - Small-sample correction
+#   - Wild cluster bootstrap WCR11 and WCR31
+#   - Simple slope analyses
+#   - Predictions and interaction plots
 #
-# Der zeitkonstante Haupteffekt der Nähe wird durch die
-# Partei-Fixed-Effects absorbiert und nicht separat geschätzt.
-# Alle Ergebniswerte werden mit drei Nachkommastellen ausgegeben.
+# The time-invariant main effect of proximity is absorbed by the
+# party fixed effects and is not estimated separately.
+# All result values are printed with three decimal places.
 # ============================================================
 
 from pathlib import Path
@@ -38,7 +37,7 @@ from wildboottest.wildboottest import wildboottest
 
 
 # ============================================================
-# 1. EINSTELLUNGEN
+# 1. SETTINGS
 # ============================================================
 
 INPUT_FILE = Path(
@@ -66,38 +65,38 @@ DECIMALS = 3
 
 MODEL_SPECS = {
     "distance": {
-        "label": "Rhetorische Distanz zur AfD",
+        "label": "Rhetorical distance to the AfD",
         "outcome": "populism_distance_to_afd",
         "expected_direction": "negative",
         "expected_sign": -1,
         "output_prefix": "h2a_distance",
         "prediction_column": "predicted_distance",
-        "y_axis_label": "Vorhergesagte rhetorische Distanz zur AfD",
+        "y_axis_label": "Predicted rhetorical distance to the AfD",
         "figure_title": (
-            "H2a: Ideologische Nähe und rhetorische Distanz zur AfD"
+            "H2a: Ideological proximity and rhetorical distance to the AfD"
         ),
     },
     "absolute": {
-        "label": "Absoluter Populismus",
+        "label": "Absolute populism",
         "outcome": "mean_populism_score",
         "expected_direction": "positive",
         "expected_sign": 1,
         "output_prefix": "h2a_absolute_populism",
         "prediction_column": "predicted_populism",
-        "y_axis_label": "Vorhergesagter absoluter Populismus",
+        "y_axis_label": "Predicted absolute populism",
         "figure_title": (
-            "H2a: Ideologische Nähe und absoluter Populismus"
+            "H2a: Ideological proximity and absolute populism"
         ),
     },
 }
 
 
 # ============================================================
-# 2. HILFSFUNKTIONEN
+# 2. HELPER FUNCTIONS
 # ============================================================
 
 def mainstream_mask(series: pd.Series) -> pd.Series:
-    """Erzeugt einen robusten Filter für die Mainstream-Variable."""
+    """Creates a robust filter for the mainstream variable."""
     if pd.api.types.is_bool_dtype(series):
         return series.fillna(False)
 
@@ -114,7 +113,7 @@ def mainstream_mask(series: pd.Series) -> pd.Series:
 
 
 def save_dataframe(dataframe: pd.DataFrame, output_file: Path) -> None:
-    """Speichert numerische Werte mit drei Nachkommastellen."""
+    """Saves numeric values with three decimal places."""
     dataframe.to_csv(
         output_file,
         index=False,
@@ -123,7 +122,7 @@ def save_dataframe(dataframe: pd.DataFrame, output_file: Path) -> None:
 
 
 def save_bootstrap_result(result, output_file: Path) -> None:
-    """Speichert Wild-Cluster-Bootstrap-Ergebnisse."""
+    """Saves wild cluster bootstrap results."""
     if isinstance(result, pd.DataFrame):
         result.reset_index().to_csv(
             output_file,
@@ -138,7 +137,7 @@ def save_bootstrap_result(result, output_file: Path) -> None:
 
 
 def save_bootstrap_error(error: Exception, output_file: Path) -> None:
-    """Speichert Fehlertyp und Fehlermeldung."""
+    """Saves the error type and error message."""
     pd.DataFrame(
         {
             "error_type": [type(error).__name__],
@@ -148,12 +147,12 @@ def save_bootstrap_error(error: Exception, output_file: Path) -> None:
 
 
 def direction_matches(coefficient: float, expected_sign: int) -> bool:
-    """Prüft, ob der Interaktionseffekt erwartungsgemäß ausfällt."""
+    """Checks whether the interaction effect is as expected."""
     if expected_sign == -1:
         return coefficient < 0
     if expected_sign == 1:
         return coefficient > 0
-    raise ValueError("expected_sign muss -1 oder 1 sein.")
+    raise ValueError("expected_sign must be -1 or 1.")
 
 
 def interpret_interaction(
@@ -162,33 +161,33 @@ def interpret_interaction(
     expected_sign: int,
     label: str,
 ) -> str:
-    """Erstellt eine richtungsbezogene Interpretation."""
+    """Creates a direction-based interpretation."""
     matches = direction_matches(coefficient, expected_sign)
     significant = p_value < ALPHA
 
     if matches and significant:
         return (
-            f"{label}: Der Interaktionseffekt weist in die erwartete "
-            "Richtung und ist statistisch signifikant."
+            f"{label}: The interaction effect points in the expected "
+            "direction and is statistically significant."
         )
     if matches:
         return (
-            f"{label}: Der Interaktionseffekt weist in die erwartete "
-            "Richtung, ist aber nicht statistisch signifikant."
+            f"{label}: The interaction effect points in the expected "
+            "direction but is not statistically significant."
         )
     if significant:
         return (
-            f"{label}: Der Interaktionseffekt ist statistisch "
-            "signifikant, weist aber in die entgegengesetzte Richtung."
+            f"{label}: The interaction effect is statistically "
+            "significant but points in the opposite direction."
         )
     return (
-        f"{label}: Der Interaktionseffekt weist nicht in die erwartete "
-        "Richtung und ist nicht statistisch signifikant."
+        f"{label}: The interaction effect does not point in the expected "
+        "direction and is not statistically significant."
     )
 
 
 def prepare_analysis_sample(data: pd.DataFrame, outcome: str) -> pd.DataFrame:
-    """Erstellt die Mainstream-Analysestichprobe."""
+    """Creates the mainstream analysis sample."""
     required_columns = [
         outcome,
         AFD_SUPPORT,
@@ -203,7 +202,7 @@ def prepare_analysis_sample(data: pd.DataFrame, outcome: str) -> pd.DataFrame:
     ]
     if missing_columns:
         raise ValueError(
-            "Folgende Variablen fehlen:\n"
+            "The following variables are missing:\n"
             + "\n".join(f"- {column}" for column in missing_columns)
         )
 
@@ -230,7 +229,7 @@ def prepare_analysis_sample(data: pd.DataFrame, outcome: str) -> pd.DataFrame:
     ).copy()
 
     if analysis_df.empty:
-        raise ValueError(f"Die Analysestichprobe für '{outcome}' ist leer.")
+        raise ValueError(f"The analysis sample for '{outcome}' is empty.")
 
     analysis_df[PARTY] = analysis_df[PARTY].astype("category")
     analysis_df[PERIOD] = analysis_df[PERIOD].astype("category")
@@ -239,7 +238,7 @@ def prepare_analysis_sample(data: pd.DataFrame, outcome: str) -> pd.DataFrame:
     )
 
     if (analysis_df["cluster_id"] < 0).any():
-        raise ValueError("Ungültige Cluster-IDs entstanden.")
+        raise ValueError("Invalid cluster IDs were created.")
 
     return analysis_df
 
@@ -247,7 +246,7 @@ def prepare_analysis_sample(data: pd.DataFrame, outcome: str) -> pd.DataFrame:
 def center_variables(
     analysis_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, float, float]:
-    """Zentriert Prädiktor und Moderator und bildet die Interaktion."""
+    """Centers predictor and moderator and creates the interaction."""
     analysis_df = analysis_df.copy()
     afd_support_mean = float(analysis_df[AFD_SUPPORT].mean())
     proximity_mean = float(analysis_df[MODERATOR].mean())
@@ -271,10 +270,10 @@ def extract_parameter_result(
     cluster_result,
     parameter_name: str,
 ) -> dict:
-    """Extrahiert den interessierenden Modellparameter."""
+    """Extracts the model parameter of interest."""
     parameter_names = ols_result.model.exog_names
     if parameter_name not in parameter_names:
-        raise ValueError(f"Parameter '{parameter_name}' fehlt im Modell.")
+        raise ValueError(f"Parameter '{parameter_name}' is missing from the model.")
 
     parameter_index = parameter_names.index(parameter_name)
     ci = cluster_result.conf_int()[parameter_index]
@@ -296,7 +295,7 @@ def run_wild_cluster_bootstrap(
     output_file: Path,
     heading: str,
 ):
-    """Führt den Wild-Cluster-Bootstrap für die Interaktion aus."""
+    """Runs the wild cluster bootstrap for the interaction."""
     print("\n" + "=" * 72)
     print(heading)
     print("=" * 72)
@@ -323,11 +322,11 @@ def run_wild_cluster_bootstrap(
 
     except Exception as error:
         print(
-            f"Der Wild-Cluster-Bootstrap {bootstrap_type} "
-            "konnte nicht berechnet werden."
+            f"The wild cluster bootstrap {bootstrap_type} "
+            "could not be computed."
         )
-        print(f"Fehlertyp: {type(error).__name__}")
-        print(f"Fehlermeldung: {error}")
+        print(f"Error type: {type(error).__name__}")
+        print(f"Error message: {error}")
         save_bootstrap_error(error, output_file)
         return None
 
@@ -338,7 +337,7 @@ def calculate_simple_slopes(
     cluster_result,
     proximity_mean: float,
 ) -> pd.DataFrame:
-    """Berechnet den AfD-Unterstützungseffekt je Nähewert."""
+    """Calculates the AfD support effect for each proximity value."""
     parameter_names = ols_result.model.exog_names
     afd_index = parameter_names.index(CENTERED_SUPPORT)
     interaction_index = parameter_names.index(INTERACTION)
@@ -384,7 +383,7 @@ def create_predictions(
     proximity_mean: float,
     prediction_column: str,
 ) -> pd.DataFrame:
-    """Erzeugt Vorhersagen für alle beobachteten Nähewerte."""
+    """Creates predictions for all observed proximity values."""
     afd_grid = np.linspace(
         analysis_df[AFD_SUPPORT].min(),
         analysis_df[AFD_SUPPORT].max(),
@@ -435,17 +434,17 @@ def create_interaction_plot(
     figure_title: str,
     output_file: Path,
 ) -> None:
-    """Speichert die Interaktionsgrafik."""
+    """Saves the interaction plot."""
     plt.figure(figsize=(9, 6))
 
     for proximity_value, group in predictions.groupby(MODERATOR):
         plt.plot(
             group[AFD_SUPPORT],
             group[prediction_column],
-            label=f"AfD-Nähe = {int(proximity_value)}",
+            label=f"AfD proximity = {int(proximity_value)}",
         )
 
-    plt.xlabel("AfD-Unterstützung in Prozentpunkten")
+    plt.xlabel("AfD support in percentage points")
     plt.ylabel(y_axis_label)
     plt.title(figure_title)
     plt.legend()
@@ -459,7 +458,7 @@ def run_model_specification(
     model_key: str,
     model_spec: dict,
 ) -> dict:
-    """Führt eine vollständige H2a-Operationalisierung aus."""
+    """Runs one complete H2a operationalization."""
     label = model_spec["label"]
     outcome = model_spec["outcome"]
     expected_direction = model_spec["expected_direction"]
@@ -482,13 +481,13 @@ def run_model_specification(
     cluster_array = analysis_df["cluster_id"].to_numpy(dtype=np.int64)
 
     print("\n\n" + "#" * 72)
-    print(f"STARTE H2a-MODELL: {label.upper()}")
+    print(f"STARTING H2a MODEL: {label.upper()}")
     print("#" * 72)
-    print(f"Analyseeinheiten: {len(analysis_df)}")
-    print(f"Parteien/Cluster: {analysis_df[PARTY].nunique()}")
-    print(f"Wahlperioden: {analysis_df[PERIOD].nunique()}")
+    print(f"Analysis units: {len(analysis_df)}")
+    print(f"Parties/clusters: {analysis_df[PARTY].nunique()}")
+    print(f"Electoral terms: {analysis_df[PERIOD].nunique()}")
 
-    print("\nNähewerte nach Partei:")
+    print("\nProximity values by party:")
     print(
         analysis_df[[PARTY, MODERATOR]]
         .drop_duplicates()
@@ -496,9 +495,9 @@ def run_model_specification(
         .to_string(index=False)
     )
 
-    print("\nMittelwerte für die Zentrierung:")
-    print(f"AfD-Unterstützung: {afd_support_mean:.3f}")
-    print(f"AfD-Nähe:          {proximity_mean:.3f}")
+    print("\nMeans used for centering:")
+    print(f"AfD support:   {afd_support_mean:.3f}")
+    print(f"AfD proximity: {proximity_mean:.3f}")
 
     formula = f"""
         {outcome}
@@ -513,7 +512,7 @@ def run_model_specification(
 
     if len(cluster_array) != int(ols_result.nobs):
         raise ValueError(
-            "Cluster-Array und Modellbeobachtungen stimmen nicht überein."
+            "Cluster array and model observations do not match."
         )
 
     cluster_result = ols_result.get_robustcov_results(
@@ -542,20 +541,20 @@ def run_model_specification(
         label,
     )
 
-    print("\nModellspezifikation:")
+    print("\nModel specification:")
     print(formula.strip())
     print("\n" + "=" * 72)
-    print(f"H2a: Interaktionsmodell – {label}")
+    print(f"H2a: Interaction model – {label}")
     print("=" * 72)
-    print(f"Interaktionskoeffizient: {stats['coefficient']:.3f}")
-    print(f"Clusterrobuster SE:      {stats['cluster_robust_se']:.3f}")
-    print(f"t-Wert:                  {stats['t_value']:.3f}")
-    print(f"p-Wert:                  {stats['p_value']:.3f}")
+    print(f"Interaction coefficient: {stats['coefficient']:.3f}")
+    print(f"Cluster-robust SE:       {stats['cluster_robust_se']:.3f}")
+    print(f"t-value:                 {stats['t_value']:.3f}")
+    print(f"p-value:                 {stats['p_value']:.3f}")
     print(
-        f"95%-KI:                  "
+        f"95% CI:                  "
         f"[{stats['ci_95_low']:.3f}, {stats['ci_95_high']:.3f}]"
     )
-    print(f"H2a unterstützt:         {'Ja' if supported else 'Nein'}")
+    print(f"H2a supported:           {'Yes' if supported else 'No'}")
     print("\nInterpretation:")
     print(interpretation)
 
@@ -582,7 +581,7 @@ def run_model_specification(
     )
 
     print("\n" + "=" * 72)
-    print(f"Simple Slopes – {label}")
+    print(f"Simple slopes – {label}")
     print("=" * 72)
     print(simple_slopes.round(DECIMALS).to_string(index=False))
 
@@ -637,7 +636,7 @@ def run_model_specification(
         float_format="%.3f",
     )
 
-    print("\nGespeicherte Dateien:")
+    print("\nSaved files:")
     print(f"- {output_model}")
     print(f"- {output_bootstrap_11}")
     print(f"- {output_bootstrap_31}")
@@ -653,26 +652,26 @@ def run_model_specification(
 
 
 # ============================================================
-# 3. DATEN EINLESEN
+# 3. LOAD DATA
 # ============================================================
 
 if not INPUT_FILE.exists():
     raise FileNotFoundError(
-        f"Datei nicht gefunden:\n{INPUT_FILE.resolve()}"
+        f"File not found:\n{INPUT_FILE.resolve()}"
     )
 
 df = pd.read_csv(INPUT_FILE)
 
 print("=" * 72)
-print("H2a: Moderation der rhetorischen Annäherung durch ideologische Nähe")
+print("H2a: Moderation of rhetorical convergence by ideological proximity")
 print("=" * 72)
-print(f"Datei: {INPUT_FILE}")
-print(f"Zeilen im Gesamtdatensatz: {len(df)}")
-print(f"Spalten im Gesamtdatensatz: {len(df.columns)}")
+print(f"File: {INPUT_FILE}")
+print(f"Rows in the full dataset: {len(df)}")
+print(f"Columns in the full dataset: {len(df.columns)}")
 
 
 # ============================================================
-# 4. BEIDE H2a-OPERATIONALISIERUNGEN SCHÄTZEN
+# 4. ESTIMATE BOTH H2a OPERATIONALIZATIONS
 # ============================================================
 
 all_main_results = []
@@ -694,7 +693,7 @@ for model_key, model_spec in MODEL_SPECS.items():
 
 
 # ============================================================
-# 5. GEMEINSAME ERGEBNISTABELLEN
+# 5. COMBINED RESULT TABLES
 # ============================================================
 
 combined_main_results = pd.concat(
@@ -716,14 +715,14 @@ save_dataframe(combined_simple_slopes, OUTPUT_COMBINED_SIMPLE_SLOPES)
 
 
 # ============================================================
-# 6. ABSCHLUSSAUSGABE
+# 6. FINAL OUTPUT
 # ============================================================
 
 print("\n\n" + "=" * 72)
-print("H2a: ALLE ANALYSEN ABGESCHLOSSEN")
+print("H2a: ALL ANALYSES COMPLETED")
 print("=" * 72)
 
-print("\nInteraktionsmodelle im Vergleich:")
+print("\nInteraction models compared:")
 print(
     combined_main_results[
         [
@@ -745,17 +744,17 @@ print(
     .to_string(index=False)
 )
 
-print("\nGemeinsame Ergebnisdateien:")
-print(f"- Interaktionsmodelle: {OUTPUT_COMBINED_MODELS}")
-print(f"- Simple Slopes:       {OUTPUT_COMBINED_SIMPLE_SLOPES}")
+print("\nCombined result files:")
+print(f"- Interaction models: {OUTPUT_COMBINED_MODELS}")
+print(f"- Simple slopes:      {OUTPUT_COMBINED_SIMPLE_SLOPES}")
 
 print(
-    "\nHinweis zur Interpretation:\n"
-    "- Beim Distanzmodell unterstützt ein negativer "
-    "Interaktionskoeffizient H2a.\n"
-    "- Beim Modell der absoluten GAL-TAN-Position unterstützt "
-    "ein positiver Interaktionskoeffizient H2a, sofern höhere "
-    "Werte den TAN-Pol abbilden.\n"
-    "- Der Haupteffekt der zeitkonstanten Nähevariable wird durch "
-    "die Partei-Fixed-Effects absorbiert."
+    "\nNote on interpretation:\n"
+    "- In the distance model, a negative interaction coefficient "
+    "supports H2a.\n"
+    "- In the absolute populism position model, a positive interaction "
+    "coefficient supports H2a, provided that higher values represent "
+    "the TAN pole.\n"
+    "- The main effect of the time-invariant proximity variable is "
+    "absorbed by the party fixed effects."
 )

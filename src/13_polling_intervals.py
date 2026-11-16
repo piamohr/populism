@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 # =====================================================
-# EINSTELLUNGEN
+# SETTINGS
 # =====================================================
 
 SPEECH_FILE = Path("data/processed/final_llm_coding/final_analysis_dataset_merged.csv")
@@ -61,7 +61,7 @@ TOPIC_MAP = {
 
 
 def check_required_columns(data: pd.DataFrame, required_columns: list[str], file_label: str) -> None:
-    """Prüft, ob alle erwarteten Variablen vorhanden sind."""
+    """Check that all expected variables are present."""
     missing_columns = [
         column for column in required_columns
         if column not in data.columns
@@ -69,12 +69,12 @@ def check_required_columns(data: pd.DataFrame, required_columns: list[str], file
 
     if missing_columns:
         raise ValueError(
-            f"In {file_label} fehlen erwartete Variablen: "
+            f"Expected variables are missing in {file_label}: "
             f"{missing_columns}"
         )
 
 # =====================================================
-# DATEN LADEN
+# LOAD DATA
 # =====================================================
 
 speeches = pd.read_csv(
@@ -89,8 +89,8 @@ speeches = pd.read_csv(
 
 polls = pd.read_excel(POLL_FILE)
 
-print("Reden:", speeches.shape)
-print("Umfragen:", polls.shape)
+print("Speeches:", speeches.shape)
+print("Polls:", polls.shape)
 
 required_speech_columns = [
     "rede_id",
@@ -114,13 +114,13 @@ check_required_columns(
 )
 
 # =====================================================
-# BEREINIGUNG
+# CLEANING
 # =====================================================
 
-# Spaltennamen vereinheitlichen
+# Harmonize column names
 polls.columns = [c.strip().lower() for c in polls.columns]
 
-# Erwartete Umfragespalten nach Vereinheitlichung prüfen
+# Check expected polling columns after harmonization
 required_poll_columns = ["datum"] + ALL_PARTIES
 check_required_columns(
     data=polls,
@@ -128,7 +128,7 @@ check_required_columns(
     file_label=str(POLL_FILE),
 )
 
-# Parteiennamen vereinheitlichen
+# PHarmonize party names
 speeches["party_clean"] = (
     speeches["party_clean"]
     .astype(str)
@@ -136,13 +136,13 @@ speeches["party_clean"] = (
     .str.lower()
 )
 
-# Datumsvariablen
+# Date variables
 speeches["sitzung_datum"] = pd.to_datetime(
     speeches["sitzung_datum"],
     errors="coerce"
 )
 
-# Excel-Datum robust einlesen
+# Robustly parse Excel dates
 if pd.api.types.is_numeric_dtype(polls["datum"]):
     polls["poll_date"] = pd.to_datetime(
         polls["datum"],
@@ -155,40 +155,40 @@ else:
         errors="coerce"
     )
 
-# Umfragewerte numerisch machen
+# Convert polling values to numeric
 for col in ALL_PARTIES:
     polls[col] = pd.to_numeric(polls[col], errors="coerce")
 
-# LLM-Scores numerisch machen
+# Convert LLM scores to numeric
 for col in POP_COLS + GAL_TAN_COLS + ["populism_score", "populism_sum", "gal_tan_score"]:
     speeches[col] = pd.to_numeric(speeches[col], errors="coerce")
 
-# Sortieren
+# Sort
 polls = polls.sort_values("poll_date").reset_index(drop=True)
 speeches = speeches.sort_values("sitzung_datum").reset_index(drop=True)
 
 # =====================================================
-# POLLING-INTERVALLE ERZEUGEN
+# CREATE POLLING INTERVALS
 # =====================================================
 
 polls["next_poll_date"] = polls["poll_date"].shift(-1)
 polls["poll_interval_id"] = np.arange(len(polls))
 
-# AfD-Unterstützung am Beginn des Intervalls
+# AfD support at the start of the interval
 polls["afd_support_t"] = polls["afd"]
 
-# Nur vollständige Intervalle behalten
+# Keep only complete intervals
 poll_intervals = polls.dropna(subset=["next_poll_date"]).copy()
 
-print("\nPolling-Zeitraum:")
+print("\nPolling period:")
 print(
     poll_intervals["poll_date"].min(),
-    "bis",
+    "to",
     poll_intervals["next_poll_date"].max()
 )
 
 # =====================================================
-# REDEN POLLING-INTERVALLEN ZUORDNEN
+# ASSIGN SPEECHES TO POLLING INTERVALS
 # =====================================================
 
 speeches_with_polls = pd.merge_asof(
@@ -213,18 +213,18 @@ speeches_with_polls = pd.merge_asof(
     allow_exact_matches=True
 )
 
-# Sicherheit:
-# Rede muss tatsächlich im Intervall [poll_date, next_poll_date) liegen.
+# Safety check:
+# The speech must actually fall within the interval [poll_date, next_poll_date).
 speeches_with_polls = speeches_with_polls[
     (speeches_with_polls["sitzung_datum"] >= speeches_with_polls["poll_date"]) &
     (speeches_with_polls["sitzung_datum"] < speeches_with_polls["next_poll_date"])
 ].copy()
 
-print("\nReden nach Polling-Matching:", speeches_with_polls.shape)
-print("Nicht zugeordnete Reden:", len(speeches) - len(speeches_with_polls))
+print("\nSpeeches after polling match:", speeches_with_polls.shape)
+print("Unmatched speeches:", len(speeches) - len(speeches_with_polls))
 
 # =====================================================
-# UMFRAGEDATEN INS LONG-FORMAT BRINGEN
+# RESHAPE POLLING DATA TO LONG FORMAT
 # =====================================================
 
 polls_long = poll_intervals.melt(
@@ -247,9 +247,9 @@ polls_long = polls_long.sort_values(
 # MODERATOR: SUPPORT CHANGE
 # =====================================================
 
-# Veränderung gegenüber der vorherigen Infratest-dimap-Erhebung.
-# Negative Werte = Verlust
-# Positive Werte = Zugewinn
+# Change compared with the previous Infratest dimap poll.
+# Negative values = loss
+# Positive values = gain
 
 polls_long["party_support_t_minus_1"] = (
     polls_long
@@ -267,7 +267,7 @@ polls_long["party_support_change_abs"] = (
 )
 
 # =====================================================
-# PARTEISPEZIFISCHE SUPPORT-VARIABLEN AN REDE-LEVEL HÄNGEN
+# ATTACH PARTY-SPECIFIC SUPPORT VARIABLES TO SPEECH LEVEL
 # =====================================================
 
 speeches_with_polls = speeches_with_polls.merge(
@@ -287,12 +287,11 @@ speeches_with_polls = speeches_with_polls.merge(
 )
 
 # =====================================================
-# GAL-TAN-THEMENPRÄSENZ AUF REDEEBENE
+# GAL-TAN TOPIC PRESENCE AT SPEECH LEVEL
 # =====================================================
 
-# Eine GAL-TAN-Dimension gilt als angesprochen,
-# wenn ein gültiger Score vorliegt.
-# NaN bedeutet: Thema in der Rede nicht substanziell vorhanden / nicht codierbar.
+# A GAL-TAN dimension counts as addressed if a valid score exists.
+# NaN means: topic not substantively present in the speech / not codable.
 
 for col, label in GAL_TAN_TOPIC_LABELS.items():
     speeches_with_polls[f"has_{label}"] = (
@@ -302,15 +301,15 @@ for col, label in GAL_TAN_TOPIC_LABELS.items():
     )
 
 # =====================================================
-# SPEECH-LEVEL MIT POLLING SPEICHERN
+# SAVE SPEECH LEVEL WITH POLLING
 # =====================================================
 
 speeches_with_polls.to_csv(OUTPUT_SPEECH_POLL, index=False)
 
-print(f"\nGespeichert: {OUTPUT_SPEECH_POLL}")
+print(f"\nSaved: {OUTPUT_SPEECH_POLL}")
 
 # =====================================================
-# VOLLSTÄNDIGES PARTEI × POLLING-INTERVALL-GRID
+# COMPLETE PARTY × POLLING INTERVAL GRID
 # =====================================================
 
 complete_party_grid = (
@@ -330,7 +329,7 @@ complete_party_grid = (
     .drop(columns="key")
 )
 
-# Support-Variablen an vollständiges Grid hängen
+# Attach support variables to the complete grid
 support_vars = polls_long[
     [
         "poll_interval_id",
@@ -350,7 +349,7 @@ complete_party_grid = complete_party_grid.merge(
 )
 
 # =====================================================
-# REDEWERTE AGGREGIEREN: PARTEI × INTERVALL
+# AGGREGATE SPEECH SCORES: PARTY × INTERVAL
 # =====================================================
 
 speech_agg = (
@@ -363,31 +362,31 @@ speech_agg = (
         as_index=False
     )
     .agg({
-        # Indizes
+        # Indices
         "populism_score": "mean",
         "populism_sum": "mean",
         "gal_tan_score": "mean",
 
-        # Populismus-Subdimensionen
+        # Populism subdimensions
         "P1_people": "mean",
         "P2_anti_elite": "mean",
         "P3_outgroup": "mean",
 
-        # GAL-TAN-Subdimensionen
+        # GAL-TAN subdimensions
         "G1_environment": "mean",
         "G2_migration": "mean",
         "G3_society": "mean",
         "G4_civil_rights": "mean",
         "G5_cosmopolitanism": "mean",
 
-        # GAL-TAN-Themenhäufigkeiten
+        # GAL-TAN topic counts
         "has_environment": "sum",
         "has_migration": "sum",
         "has_society": "sum",
         "has_civil_rights": "sum",
         "has_cosmopolitanism": "sum",
 
-        # Fallzahlen / Checks
+        # Case counts / checks
         "rede_id": "count",
         "has_gal_tan_score": "sum",
         "word_count": "mean"
@@ -420,7 +419,7 @@ speech_agg = speech_agg.rename(columns={
     "word_count": "mean_word_count"
 })
 
-# Aggregierte Redewerte an vollständiges Partei-Intervall-Grid hängen
+# Attach aggregated speech scores to the complete party-interval grid
 party_interval = complete_party_grid.merge(
     speech_agg,
     on=["poll_interval_id", "party_clean"],
@@ -428,7 +427,7 @@ party_interval = complete_party_grid.merge(
     validate="one_to_one"
 )
 
-# Leere Partei-Intervalle sichtbar machen
+# Make empty party intervals visible
 party_interval["n_speeches"] = (
     party_interval["n_speeches"]
     .fillna(0)
@@ -457,7 +456,7 @@ party_interval["is_afd"] = (
 )
 
 # =====================================================
-# MODERATOR: ORDINALE NÄHE ZUR AFD
+# MODERATOR: ORDINAL PROXIMITY TO THE AFD
 # =====================================================
 
 afd_proximity_map = {
@@ -473,7 +472,7 @@ party_interval["afd_proximity_ordinal"] = (
     .map(afd_proximity_map)
 )
 
-# Optional: Label zur besseren Lesbarkeit
+# Label for readability
 afd_proximity_label_map = {
     0: "Die Linke",
     1: "Bündnis 90/Die Grünen",
@@ -488,7 +487,7 @@ party_interval["afd_proximity_label"] = (
 )
 
 # =====================================================
-# GAL-TAN-THEMENANTEILE INNERHALB DER PARTEI-INTERVALLE
+# GAL-TAN TOPIC SHARES WITHIN PARTY INTERVALS
 # =====================================================
 
 for topic, count_col in TOPIC_MAP.items():
@@ -499,7 +498,7 @@ for topic, count_col in TOPIC_MAP.items():
     )
 
 # =====================================================
-# MAINSTREAM-GESAMTZAHLEN PRO INTERVALL
+# MAINSTREAM TOTALS PER INTERVAL
 # =====================================================
 
 mainstream_totals = (
@@ -532,7 +531,7 @@ party_interval = party_interval.merge(
     validate="many_to_one"
 )
 
-# Anteil der Themenreden einer Partei an allen Mainstream-Reden im Intervall
+# Share of a party's topic speeches among all mainstream speeches in the interval
 for topic, count_col in TOPIC_MAP.items():
     party_interval[f"share_{topic}_of_mainstream_speeches"] = np.where(
         party_interval["n_mainstream_speeches"] > 0,
@@ -540,7 +539,7 @@ for topic, count_col in TOPIC_MAP.items():
         np.nan
     )
 
-# Anteil einer Partei an allen Mainstream-Reden zu einem bestimmten Thema
+# Share of a party among all mainstream speeches on a given topic
 for topic, count_col in TOPIC_MAP.items():
     mainstream_topic_col = f"n_mainstream_speeches_{topic}"
 
@@ -551,7 +550,7 @@ for topic, count_col in TOPIC_MAP.items():
     )
 
 # =====================================================
-# GOVERNMENT / OPPOSITION AUF INTERVALL-EBENE
+# GOVERNMENT / OPPOSITION AT INTERVAL LEVEL
 # =====================================================
 
 gov_interval = (
@@ -569,8 +568,8 @@ party_interval = party_interval.merge(
     validate="one_to_one"
 )
 
-# Numerische Dummy-Variablen:
-# 1 = ja, 0 = nein, NaN = keine Rede im Intervall / nicht bestimmbar
+# Numeric dummy variables:
+# 1 = yes, 0 = no, NaN = no speech in the interval / not determinable
 party_interval["is_government"] = np.where(
     party_interval["government_label_interval"].eq("Regierung"),
     1,
@@ -592,7 +591,7 @@ party_interval["is_opposition"] = np.where(
 )
 
 # =====================================================
-# WAHLPERIODE AUF PARTEI × INTERVALL-EBENE
+# ELECTORAL TERM AT PARTY × INTERVAL LEVEL
 # =====================================================
 
 wahlperiode_party_interval = (
@@ -616,7 +615,7 @@ party_interval["wahlperiode_cat"] = (
 )
 
 # =====================================================
-# ZEITVARIABLEN
+# TIME VARIABLES
 # =====================================================
 
 party_interval["poll_year"] = party_interval["poll_date"].dt.year
@@ -626,17 +625,17 @@ party_interval["interval_length_days"] = (
     party_interval["poll_date"]
 ).dt.days
 
-# Sortieren und speichern
+# Sort and save
 party_interval = party_interval.sort_values(
     ["poll_interval_id", "party_clean"]
 ).reset_index(drop=True)
 
 party_interval.to_csv(OUTPUT_PARTY_INTERVAL, index=False)
 
-print(f"Gespeichert: {OUTPUT_PARTY_INTERVAL}")
+print(f"Saved: {OUTPUT_PARTY_INTERVAL}")
 
 # =====================================================
-# VOLLSTÄNDIGES MAINSTREAM_ALL × POLLING-INTERVALL-GRID
+# COMPLETE MAINSTREAM_ALL × POLLING INTERVAL GRID
 # =====================================================
 
 complete_mainstream_grid = poll_intervals[
@@ -649,9 +648,9 @@ complete_mainstream_grid = poll_intervals[
 ].copy()
 
 # =====================================================
-# MAINSTREAM_ALL AGGREGIEREN
+# AGGREGATE MAINSTREAM_ALL
 # =====================================================
-# Redegewichtet: Parteien mit mehr Reden im Intervall fließen stärker ein.
+# Speech-weighted: parties with more speeches in the interval contribute more.
 
 mainstream_agg = (
     speeches_with_polls[
@@ -659,31 +658,31 @@ mainstream_agg = (
     ]
     .groupby("poll_interval_id", as_index=False)
     .agg({
-        # Indizes
+        # Indices
         "populism_score": "mean",
         "populism_sum": "mean",
         "gal_tan_score": "mean",
 
-        # Populismus-Subdimensionen
+        # Populism subdimensions
         "P1_people": "mean",
         "P2_anti_elite": "mean",
         "P3_outgroup": "mean",
 
-        # GAL-TAN-Subdimensionen
+        # GAL-TAN subdimensions
         "G1_environment": "mean",
         "G2_migration": "mean",
         "G3_society": "mean",
         "G4_civil_rights": "mean",
         "G5_cosmopolitanism": "mean",
 
-        # GAL-TAN-Themenhäufigkeiten
+        # GAL-TAN topic counts
         "has_environment": "sum",
         "has_migration": "sum",
         "has_society": "sum",
         "has_civil_rights": "sum",
         "has_cosmopolitanism": "sum",
 
-        # Fallzahlen / Checks
+        # Case counts / checks
         "rede_id": "count",
         "has_gal_tan_score": "sum",
         "word_count": "mean"
@@ -752,7 +751,7 @@ for topic, count_col in TOPIC_MAP.items():
 mainstream_interval["unit"] = "mainstream_all"
 
 # =====================================================
-# WAHLPERIODE AUF MAINSTREAM_ALL × INTERVALL-EBENE
+# ELECTORAL TERM AT MAINSTREAM_ALL × INTERVAL LEVEL
 # =====================================================
 
 wahlperiode_mainstream_interval = (
@@ -789,13 +788,13 @@ mainstream_interval["wahlperiode_cat"] = (
 
 mainstream_interval.to_csv(OUTPUT_MAINSTREAM_INTERVAL, index=False)
 
-print(f"Gespeichert: {OUTPUT_MAINSTREAM_INTERVAL}")
+print(f"Saved: {OUTPUT_MAINSTREAM_INTERVAL}")
 
 # =====================================================
-# AFD-REFERENZWERTE PRO INTERVALL
+# AFD REFERENCE VALUES PER INTERVAL
 # =====================================================
-# Keine neue inhaltliche Aggregation:
-# Die AfD-Zeile aus party_interval wird nur als Referenz für Distanzen genutzt.
+# No new substantive aggregation:
+# The AfD row from party_interval is only used as a reference for distances.
 
 afd_interval = party_interval[
     party_interval["party_clean"] == "afd"
@@ -866,7 +865,7 @@ afd_interval = afd_interval.rename(columns={
 })
 
 # =====================================================
-# DISTANZEN: MAINSTREAM-PARTEIEN ZUR AFD
+# DISTANCES: MAINSTREAM PARTIES TO THE AFD
 # =====================================================
 
 party_distance = party_interval.merge(
@@ -876,12 +875,12 @@ party_distance = party_interval.merge(
     validate="many_to_one"
 )
 
-# Für Hypothesentests nur Mainstream-Parteien
+# Only mainstream parties for hypothesis tests
 party_distance = party_distance[
     party_distance["party_clean"].isin(MAINSTREAM_PARTIES)
 ].copy()
 
-# Zentrale Distanzen
+# Central distances
 party_distance["populism_distance_to_afd"] = (
     party_distance["mean_populism_score"] -
     party_distance["afd_mean_populism_score"]
@@ -897,7 +896,7 @@ party_distance["gal_tan_distance_to_afd"] = (
     party_distance["afd_mean_gal_tan_score"]
 ).abs()
 
-# Populismus-Subdimensionen
+# Populismus subdimensions
 party_distance["P1_people_distance_to_afd"] = (
     party_distance["mean_P1_people"] -
     party_distance["afd_mean_P1_people"]
@@ -913,7 +912,7 @@ party_distance["P3_outgroup_distance_to_afd"] = (
     party_distance["afd_mean_P3_outgroup"]
 ).abs()
 
-# GAL-TAN-Subdimensionen
+# GAL-TAN subdimensions
 party_distance["G1_environment_distance_to_afd"] = (
     party_distance["mean_G1_environment"] -
     party_distance["afd_mean_G1_environment"]
@@ -945,10 +944,10 @@ party_distance = party_distance.sort_values(
 
 party_distance.to_csv(OUTPUT_PARTY_DISTANCE, index=False)
 
-print(f"Gespeichert: {OUTPUT_PARTY_DISTANCE}")
+print(f"Saved: {OUTPUT_PARTY_DISTANCE}")
 
 # =====================================================
-# DISTANZEN: MAINSTREAM_ALL ZUR AFD
+# DISTANCES: MAINSTREAM_ALL TO THE AFD
 # =====================================================
 
 mainstream_distance = mainstream_interval.merge(
@@ -1019,53 +1018,53 @@ mainstream_distance = mainstream_distance.sort_values(
 
 mainstream_distance.to_csv(OUTPUT_MAINSTREAM_DISTANCE, index=False)
 
-print(f"Gespeichert: {OUTPUT_MAINSTREAM_DISTANCE}")
+print(f"Saved: {OUTPUT_MAINSTREAM_DISTANCE}")
 
 # =====================================================
-# KONTROLLAUSGABEN
+# CHECK OUTPUTS
 # =====================================================
 
 print("\n=====================================================")
-print("KONTROLLEN")
+print("CHECKS")
 print("=====================================================")
 
-print("\nSpeech-Level mit Polling:")
+print("\nSpeech level with polling:")
 print(speeches_with_polls.shape)
 
-print("\nPartei × Polling-Intervall:")
+print("\nParty × Polling interval:")
 print(party_interval.shape)
 print(party_interval["party_clean"].value_counts())
 
-print("\nMainstream × Polling-Intervall:")
+print("\nMainstream × Polling interval:")
 print(mainstream_interval.shape)
 
-print("\nPartei-Distanzen:")
+print("\nParty distances:")
 print(party_distance.shape)
 print(party_distance["party_clean"].value_counts())
 
-print("\nMainstream-Distanzen:")
+print("\nMainstream distances:")
 print(mainstream_distance.shape)
 
-print("\nZeitraum der gematchten Reden:")
+print("\nTime period of matched speeches:")
 print(
     speeches_with_polls["sitzung_datum"].min(),
-    "bis",
+    "to",
     speeches_with_polls["sitzung_datum"].max()
 )
 
-print("\nVollständige Polling-Intervalle:")
-print("Anzahl poll_intervals:", len(poll_intervals))
-print("Erwartete Partei-Intervall-Zeilen:", len(poll_intervals) * len(ALL_PARTIES))
-print("Tatsächliche Partei-Intervall-Zeilen:", len(party_interval))
+print("\nComplete polling intervals:")
+print("Number of poll_intervals:", len(poll_intervals))
+print("Expected party interval rows:", len(poll_intervals) * len(ALL_PARTIES))
+print("Actual party interval rows:", len(party_interval))
 
-print("\nLeere Partei-Intervalle ohne Reden:")
+print("\nEmpty party intervals without speeches:")
 print(
     party_interval
     .groupby("party_clean")["n_speeches"]
     .apply(lambda x: (x == 0).sum())
 )
 
-print("\nReden pro Partei insgesamt über alle Intervalle:")
+print("\nSpeeches per party overall across all intervals:")
 print(
     party_interval
     .groupby("party_clean")["n_speeches"]
@@ -1073,28 +1072,28 @@ print(
     .sort_values(ascending=False)
 )
 
-print("\nFehlende party_support_t nach Partei:")
+print("\nMissing party_support_t by party:")
 print(
     party_interval
     .groupby("party_clean")["party_support_t"]
     .apply(lambda x: x.isna().sum())
 )
 
-print("\nFehlende party_support_change nach Partei:")
+print("\nMissing party_support_change by party:")
 print(
     party_interval
     .groupby("party_clean")["party_support_change"]
     .apply(lambda x: x.isna().sum())
 )
 
-print("\nSupport Change, deskriptiv für Mainstream-Parteien:")
+print("\nSupport change, descriptive for mainstream parties:")
 print(
     party_interval[
         party_interval["party_clean"].isin(MAINSTREAM_PARTIES)
     ]["party_support_change"].describe()
 )
 
-print("\nThemenhäufigkeiten über alle Partei-Intervalle:")
+print("\nTopic counts across all party intervals:")
 print(
     party_interval[
         [
@@ -1107,14 +1106,14 @@ print(
     ].sum()
 )
 
-print("\nAfD-Intervalle ohne Reden:")
+print("\nAfD intervals without speeches:")
 print(
     party_interval[
         party_interval["party_clean"].eq("afd")
     ]["n_speeches"].eq(0).sum()
 )
 
-print("\nDistanzen mit fehlendem AfD-Referenzwert:")
+print("\nDistances with missing AfD reference value:")
 print(
     party_distance[
         [
@@ -1126,7 +1125,7 @@ print(
     ].isna().sum()
 )
 
-print("\nBeispiel: Partei-Distanz-Datei")
+print("\nExample: party distance file")
 print(party_distance.head())
 
-print("\nFertig.")
+print("\nDone.")
