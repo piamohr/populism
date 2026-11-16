@@ -55,6 +55,9 @@ data/processed/*
 # But exclude very large generated final-analysis files
 data/processed/final_analysis/02_speech_level_with_polling.csv
 
+# Keep validation datasets
+!data/processed/validation/
+
 # ==========================================
 # Outputs not intended for version control
 # ==========================================

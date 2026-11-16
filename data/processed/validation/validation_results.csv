@@ -1,0 +1,14 @@
+item,type,metric,value,n
+P1_people,populism,weighted_kappa,0.715,90
+P2_anti_elite,populism,weighted_kappa,0.701,90
+P3_outgroup,populism,weighted_kappa,0.711,90
+G1_environment,gal-tan,presence_agreement,0.944,90
+G1_environment,gal-tan,spearman_positions_only,0.923,16
+G2_migration,gal-tan,presence_agreement,0.978,90
+G2_migration,gal-tan,spearman_positions_only,0.777,9
+G3_society,gal-tan,presence_agreement,0.978,90
+G3_society,gal-tan,spearman_positions_only,0.913,5
+G4_civil_rights,gal-tan,presence_agreement,0.856,90
+G4_civil_rights,gal-tan,spearman_positions_only,0.718,11
+G5_cosmopolitanism,gal-tan,presence_agreement,0.789,90
+G5_cosmopolitanism,gal-tan,spearman_positions_only,0.922,17

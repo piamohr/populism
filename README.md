@@ -118,7 +118,7 @@ Important: Only re-run the LLM coding scripts if re-coding is truly intended. To
 ### 4. Polling Intervals and Descriptive Statistics
 ```text
 13_polling_intervals.py
-14_deskriptive_statistiken.py
+14_descriptive_statistics.py
 ```
 
 These scripts assign speeches to polling intervals, aggregate the data at the party and mainstream levels, and produce descriptive statistics.
